@@ -30,7 +30,23 @@ services:
     # Volumen persistente para no perder los datos al apagar el contenedor.
     volumes:
       - postgres_reportes_data:/var/lib/postgresql/data
+  postgres-usuarios:
+    # Base de datos del microservicio de usuarios.
+    image: postgres:17
+    container_name: postgres-usuarios
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: usuarios_db
+      POSTGRES_USER: valle_user
+      POSTGRES_PASSWORD: valle_pass
+    ports:
+      # Puerto local 5434 → puerto interno 5432 del contenedor.
+      - "5434:5432"
+    volumes:
+      - postgres_usuarios_data:/var/lib/postgresql/data
+  # Definición del volumen usado por PostgreSQL.
 
-# Definición del volumen usado por PostgreSQL.
+
 volumes:
-  postgres_reportes_data:
+ postgres_reportes_data:
+ postgres_usuarios_data:  
