@@ -1,0 +1,36 @@
+# docker-compose.yml
+# Archivo de infraestructura local para levantar servicios necesarios del proyecto.
+# En este caso, levanta una base de datos PostgreSQL para el microservicio de reportes.
+
+services:
+  postgres-reportes:
+    # Imagen oficial de PostgreSQL.
+    # Se usa una versión moderna y estable.
+    image: postgres:17
+
+    # Nombre del contenedor para identificarlo fácilmente con docker ps.
+    container_name: postgres-reportes
+
+    # Permite que el contenedor se reinicie automáticamente si se detiene,
+    # excepto si lo detenemos manualmente.
+    restart: unless-stopped
+
+    # Variables de entorno usadas por PostgreSQL al crear la base.
+    environment:
+      POSTGRES_DB: reportes_db
+      POSTGRES_USER: valle_user
+      POSTGRES_PASSWORD: valle_pass
+
+    # Mapeo de puertos:
+    # localhost:5433 apunta al puerto 5432 dentro del contenedor.
+    # Se usa 5433 para evitar conflictos con un PostgreSQL local en 5432.
+    ports:
+      - "5433:5432"
+
+    # Volumen persistente para no perder los datos al apagar el contenedor.
+    volumes:
+      - postgres_reportes_data:/var/lib/postgresql/data
+
+# Definición del volumen usado por PostgreSQL.
+volumes:
+  postgres_reportes_data:
