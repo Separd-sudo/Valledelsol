@@ -1,52 +1,168 @@
-# docker-compose.yml
-# Archivo de infraestructura local para levantar servicios necesarios del proyecto.
-# En este caso, levanta una base de datos PostgreSQL para el microservicio de reportes.
+# =========================================================
+# PROYECTO: VALLE DEL SOL
+# Docker Compose principal del sistema FullStack
+# =========================================================
+# Este archivo permite levantar toda la arquitectura:
+#
+# - Base de datos PostgreSQL para usuarios
+# - Base de datos PostgreSQL para reportes
+# - Microservicio ms-usuarios
+# - Microservicio ms-reportes
+# - Backend For Frontend (BFF)
+#
+# Todos los servicios se conectan mediante una red Docker
+# interna para facilitar la comunicación entre contenedores.
+# =========================================================
 
 services:
+
+  # =======================================================
+  # BASE DE DATOS - REPORTES
+  # =======================================================
   postgres-reportes:
+
     # Imagen oficial de PostgreSQL.
-    # Se usa una versión moderna y estable.
     image: postgres:17
 
-    # Nombre del contenedor para identificarlo fácilmente con docker ps.
+    # Nombre visible del contenedor.
     container_name: postgres-reportes
 
-    # Permite que el contenedor se reinicie automáticamente si se detiene,
-    # excepto si lo detenemos manualmente.
+    # Reinicia automáticamente el contenedor.
     restart: unless-stopped
 
-    # Variables de entorno usadas por PostgreSQL al crear la base.
+    # Variables de entorno de PostgreSQL.
     environment:
       POSTGRES_DB: reportes_db
       POSTGRES_USER: valle_user
       POSTGRES_PASSWORD: valle_pass
 
-    # Mapeo de puertos:
-    # localhost:5433 apunta al puerto 5432 dentro del contenedor.
-    # Se usa 5433 para evitar conflictos con un PostgreSQL local en 5432.
+    # Puerto local → puerto interno.
     ports:
       - "5433:5432"
 
-    # Volumen persistente para no perder los datos al apagar el contenedor.
+    # Persistencia de datos.
     volumes:
       - postgres_reportes_data:/var/lib/postgresql/data
+
+    # Red interna Docker.
+    networks:
+      - valle-network
+
+
+  # =======================================================
+  # BASE DE DATOS - USUARIOS
+  # =======================================================
   postgres-usuarios:
-    # Base de datos del microservicio de usuarios.
+
     image: postgres:17
+
     container_name: postgres-usuarios
+
     restart: unless-stopped
+
     environment:
       POSTGRES_DB: usuarios_db
       POSTGRES_USER: valle_user
       POSTGRES_PASSWORD: valle_pass
+
     ports:
-      # Puerto local 5434 → puerto interno 5432 del contenedor.
       - "5434:5432"
+
     volumes:
       - postgres_usuarios_data:/var/lib/postgresql/data
-  # Definición del volumen usado por PostgreSQL.
 
+    networks:
+      - valle-network
+
+
+  # =======================================================
+  # MICROSERVICIO DE REPORTES
+  # =======================================================
+  ms-reportes:
+
+    # Construcción automática desde Dockerfile.
+    build:
+      context: ./ms-reportes
+
+    container_name: ms-reportes
+
+    restart: unless-stopped
+
+    # Espera a que PostgreSQL esté disponible.
+    depends_on:
+      - postgres-reportes
+
+    ports:
+      - "8081:8081"
+
+    networks:
+      - valle-network
+
+
+  # =======================================================
+  # MICROSERVICIO DE USUARIOS
+  # =======================================================
+  ms-usuarios:
+
+    build:
+      context: ./ms-usuarios
+
+    container_name: ms-usuarios
+
+    restart: unless-stopped
+
+    depends_on:
+      - postgres-usuarios
+
+    ports:
+      - "8082:8082"
+
+    networks:
+      - valle-network
+
+
+  # =======================================================
+  # BACKEND FOR FRONTEND (BFF)
+  # =======================================================
+  bff-valle-sol:
+
+    build:
+      context: ./bff-valle-sol
+
+    container_name: bff-valle-sol
+
+    restart: unless-stopped
+
+    # El BFF depende de ambos microservicios.
+    depends_on:
+      - ms-reportes
+      - ms-usuarios
+
+    ports:
+      - "8080:8080"
+
+    networks:
+      - valle-network
+
+
+# =========================================================
+# VOLÚMENES PERSISTENTES
+# =========================================================
+# Permiten conservar la información aunque los contenedores
+# se eliminen o reinicien.
+# =========================================================
 
 volumes:
- postgres_reportes_data:
- postgres_usuarios_data:  
+  postgres_reportes_data:
+  postgres_usuarios_data:
+
+
+# =========================================================
+# RED INTERNA DEL PROYECTO
+# =========================================================
+# Todos los servicios se comunican usando esta red.
+# =========================================================
+
+networks:
+  valle-network:
+    driver: bridge
