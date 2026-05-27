@@ -1,17 +1,10 @@
 # =========================================================
 # PROYECTO: VALLE DEL SOL
-# Docker Compose principal del sistema FullStack
+# Docker Compose principal del sistema FullStack (Producción/Despliegue)
 # =========================================================
-# Este archivo permite levantar toda la arquitectura:
-#
-# - Base de datos PostgreSQL para usuarios
-# - Base de datos PostgreSQL para reportes
-# - Microservicio ms-usuarios
-# - Microservicio ms-reportes
-# - Backend For Frontend (BFF)
-#
-# Todos los servicios se conectan mediante una red Docker
-# interna para facilitar la comunicación entre contenedores.
+# Este archivo permite levantar toda la arquitectura utilizando
+# las imágenes pre-compiladas y alojadas en Docker Hub,
+# eliminando la necesidad de compilar el código en el servidor.
 # =========================================================
 
 services:
@@ -20,149 +13,109 @@ services:
   # BASE DE DATOS - REPORTES
   # =======================================================
   postgres-reportes:
-
-    # Imagen oficial de PostgreSQL.
     image: postgres:17
-
-    # Nombre visible del contenedor.
     container_name: postgres-reportes
-
-    # Reinicia automáticamente el contenedor.
     restart: unless-stopped
-
-    # Variables de entorno de PostgreSQL.
     environment:
       POSTGRES_DB: reportes_db
       POSTGRES_USER: valle_user
       POSTGRES_PASSWORD: valle_pass
-
-    # Puerto local → puerto interno.
     ports:
       - "5433:5432"
-
-    # Persistencia de datos.
     volumes:
       - postgres_reportes_data:/var/lib/postgresql/data
-
-    # Red interna Docker.
     networks:
       - valle-network
-
 
   # =======================================================
   # BASE DE DATOS - USUARIOS
   # =======================================================
   postgres-usuarios:
-
     image: postgres:17
-
     container_name: postgres-usuarios
-
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: usuarios_db
       POSTGRES_USER: valle_user
       POSTGRES_PASSWORD: valle_pass
-
     ports:
       - "5434:5432"
-
     volumes:
       - postgres_usuarios_data:/var/lib/postgresql/data
-
     networks:
       - valle-network
-
 
   # =======================================================
   # MICROSERVICIO DE REPORTES
   # =======================================================
   ms-reportes:
-
-    # Construcción automática desde Dockerfile.
-    build:
-      context: ./ms-reportes
-
+    # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub con el tag de develop
+    # (Recuerda cambiar 'TU_USUARIO_DOCKER' por tu ID real de Docker Hub)
+    image: TU_USUARIO_DOCKER/ms-reportes:develop
     container_name: ms-reportes
-
     restart: unless-stopped
-
-    # Espera a que PostgreSQL esté disponible.
     depends_on:
       - postgres-reportes
-
     ports:
       - "8081:8081"
-
+    # Variables de entorno para que Spring Boot sepa cómo conectarse a la base de datos dentro de la red Docker
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-reportes:5432/reportes_db
+      - SPRING_DATASOURCE_USERNAME=valle_user
+      - SPRING_DATASOURCE_PASSWORD=valle_pass
     networks:
       - valle-network
-
 
   # =======================================================
   # MICROSERVICIO DE USUARIOS
   # =======================================================
   ms-usuarios:
-
-    build:
-      context: ./ms-usuarios
-
+    # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub
+    image: TU_USUARIO_DOCKER/ms-usuarios:develop
     container_name: ms-usuarios
-
     restart: unless-stopped
-
     depends_on:
       - postgres-usuarios
-
     ports:
       - "8082:8082"
-
+    # Variables de entorno para la conexión a la base de datos de usuarios
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-usuarios:5432/usuarios_db
+      - SPRING_DATASOURCE_USERNAME=valle_user
+      - SPRING_DATASOURCE_PASSWORD=valle_pass
     networks:
       - valle-network
-
 
   # =======================================================
   # BACKEND FOR FRONTEND (BFF)
   # =======================================================
   bff-valle-sol:
-
-    build:
-      context: ./bff-valle-sol
-
+    # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub
+    image: TU_USUARIO_DOCKER/bff-valle-sol:develop
     container_name: bff-valle-sol
-
     restart: unless-stopped
-
-    # El BFF depende de ambos microservicios.
     depends_on:
       - ms-reportes
       - ms-usuarios
-
     ports:
       - "8080:8080"
-
+    # Variables de entorno para que el BFF localice los microservicios mediante la red de Docker
+    environment:
+      - MS_USUARIOS_URL=http://ms-usuarios:8082
+      - MS_REPORTES_URL=http://ms-reportes:8081
     networks:
       - valle-network
-
 
 # =========================================================
 # VOLÚMENES PERSISTENTES
 # =========================================================
-# Permiten conservar la información aunque los contenedores
-# se eliminen o reinicien.
-# =========================================================
-
 volumes:
   postgres_reportes_data:
   postgres_usuarios_data:
 
-
 # =========================================================
 # RED INTERNA DEL PROYECTO
 # =========================================================
-# Todos los servicios se comunican usando esta red.
-# =========================================================
-
 networks:
   valle-network:
     driver: bridge
