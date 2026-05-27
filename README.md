@@ -13,8 +13,8 @@ Frontend → BFF → API Gateway → Microservicios → Bases de datos
 ## Componentes
 
 - Frontend Valle del Sol
+- BFF
 - API Gateway
-- BFF Valle del Sol
 - Microservicio de Reportes
 - Microservicio de Usuarios
 - Documentación técnica
