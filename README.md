@@ -8,7 +8,7 @@ El sistema busca apoyar a la Municipalidad Valle del Sol en la gestión de repor
 
 ## Arquitectura general
 
-Frontend → API Gateway → BFF → Microservicios → Bases de datos
+Frontend → BFF → API Gateway → Microservicios → Bases de datos
 
 ## Componentes
 
