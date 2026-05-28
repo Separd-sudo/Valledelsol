@@ -1,0 +1,23 @@
+======================================================================
+SISTEMA VALLE DEL SOL - ENLACES DE REPOSITORIOS Y COMPONENTES
+Evaluación Parcial N°2 - Desarrollo Fullstack III (DSY1106)
+======================================================================
+
+[1] ENLACE AL REPOSITORIO PRINCIPAL (GitHub):
+➡ https://github.com/Separd-sudo/Valledelsol.git
+* Nota: El desarrollo activo, historial de commits y la estrategia de branching se encuentran en la rama 'develop'.
+
+[2] COMPONENTES BACKEND (Ecosistema Maven):
+• BFF (Backend For Frontend): /bff-valle-sol
+• Microservicio de Reportes: /ms-reportes
+• Microservicio de Usuarios: /ms-usuarios
+• Arquetipo Base Utilizado:  /arquetipo-maven-base
+
+[3] COMPONENTE FRONTEND (Estándar NPM):
+• Interfaz de Usuario: /frontend-valle-sol
+* Configurado con React + Vite, herramientas de calidad (ESLint) y pruebas unitarias (Vitest).
+
+[4] IMÁGENES PUBLICADAS EN PRODUCTION (Docker Hub):
+➡ https://hub.docker.com/u/separdx
+* Las imágenes de los microservicios se compilan y suben automáticamente mediante el pipeline de GitHub Actions ante cada push en la rama develop.
+======================================================================

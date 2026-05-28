@@ -1,0 +1,23 @@
+# Target de Maven (Carpetas de compilación de Java)
+**/target/
+*.jar
+*.war
+
+# Dependencias de Node / NPM (¡Esto es lo que pesa gigas!)
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Configuraciones del Editor (VS Code, IntelliJ, Eclipse)
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Archivos del Sistema Operativo
+Thumbs.db
+.DS_Store
