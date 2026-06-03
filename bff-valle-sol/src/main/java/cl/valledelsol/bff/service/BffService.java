@@ -1,94 +1,97 @@
-package cl.valledelsol.bff.service;
+package cl.valledelsol.bff.service; // Paquete exacto definido en la estructura de tu proyecto 
 
 import cl.valledelsol.bff.dto.DashboardResponse;
+import cl.valledelsol.bff.dto.ReporteResponse;
+import cl.valledelsol.bff.dto.UsuarioResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import cl.valledelsol.bff.dto.UsuarioResponse;
-import cl.valledelsol.bff.dto.ReporteResponse;
+
 import java.util.List;
 
 /*
- * Service Layer del BFF.
- *“Porque el BFF desacopla los microservicios del frontend, evitando dependencias directas 
- * entre servicios y permitiendo transformar datos según necesidad del cliente.”
- * Este servicio orquesta llamadas a microservicios internos
- * y adapta las respuestas para el frontend.
+ * Capa de Servicio del BFF (Backend For Frontend).
+ * Este componente es el núcleo de la orquestación: se encarga de consumir las APIs 
+ * síncronas de los microservicios traseros y unificar las respuestas para React[cite: 339, 340].
  */
 @Service
 public class BffService {
 
+    // Instancia compartida de RestTemplate inyectada por el constructor [cite: 447]
     private final RestTemplate restTemplate;
 
     /*
-     * URL de ms-reportes leída desde application.properties.
+     * Inyección dinámica de las URLs base desde el archivo application.properties.
+     * Permite cambiar los entornos de ejecución (Localhost vs Contenedores Docker) sin tocar el código.
      */
-    @Value("${services.reportes.url}")
-    private String reportesUrl;
+    @Value("${ms.usuarios.url:http://localhost:8082}")
+    private String msUsuariosUrl;
+
+    @Value("${ms.reportes.url:http://localhost:8081}")
+    private String msReportesUrl;
 
     /*
-     * URL de ms-usuarios leída desde application.properties.
+     * Inyección de dependencia por constructor, cumpliendo con las buenas prácticas del arquetipo[cite: 359, 391].
      */
-    @Value("${services.usuarios.url}")
-    private String usuariosUrl;
-
     public BffService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    /*
-     * Construye el dashboard consumiendo ms-reportes y ms-usuarios.
-     * El frontend recibe una respuesta resumida sin consultar servicios por separado.
+    /**
+     * Orquestación del Dashboard: Consume de manera síncrona y simultánea la lista de reportes 
+     * y la lista de usuarios para calcular los totales requeridos por la pantalla de React[cite: 288, 340].
      */
     public DashboardResponse obtenerDashboard() {
-        Object[] reportes = restTemplate.getForObject(reportesUrl, Object[].class);
-        Object[] usuarios = restTemplate.getForObject(usuariosUrl, Object[].class);
+        // 1. Obtenemos la lista de reportes llamando al microservicio ms-reportes 
+        List<ReporteResponse> reportes = listarReportes();
+        Integer totalReportes = (reportes != null) ? reportes.size() : 0;
 
-        int totalReportes = reportes != null ? reportes.length : 0;
-        int totalUsuarios = usuarios != null ? usuarios.length : 0;
+        // 2. Obtenemos la lista de usuarios llamando al microservicio ms-usuarios 
+        List<UsuarioResponse> usuarios = listarUsuarios();
+        Integer totalUsuarios = (usuarios != null) ? usuarios.size() : 0;
 
-        return new DashboardResponse(
-                totalReportes,
-                totalUsuarios,
-                "Dashboard generado desde el BFF Valle del Sol"
-        );
+        // 3. Retornamos el DTO consolidado combinando ambos mundos en una sola respuesta síncrona [cite: 340, 681]
+        String mensajeInformativo = "Información unificada síncronamente desde ms-reportes (" + totalReportes 
+                + " registros) y ms-usuarios (" + totalUsuarios + " registros) para la Municipalidad.";
+        
+        return new DashboardResponse(totalReportes, totalUsuarios, mensajeInformativo); // [cite: 681]
     }
 
-    /*
-     * Lista reportes consumiendo ms-reportes.
-     */
-    public List<ReporteResponse> listarReportes() {
-
-    /*
-     * Consume ms-reportes y lo convierte a array tipado.
-     */
-    ReporteResponse[] response = restTemplate.getForObject(
-            reportesUrl,
-            ReporteResponse[].class
-    );
-
-    /*
-     * Convierte a List para el controller.
-     */
-    return response != null ? List.of(response) : List.of();
-}
-
-    /*
-     * Lista usuarios consumiendo ms-usuarios.
+    /**
+     * Intermediario para recuperar la lista de usuarios desde ms-usuarios[cite: 675].
+     * Utiliza ParameterizedTypeReference para mapear de forma segura colecciones genéricas JSON (List)[cite: 551].
      */
     public List<UsuarioResponse> listarUsuarios() {
+        String urlEndpoint = msUsuariosUrl + "/api/usuarios"; // Endpoint expuesto en ms-usuarios [cite: 433]
 
-    /*
-     * Consume ms-usuarios y lo convierte a array tipado.
-     */
-    UsuarioResponse[] response = restTemplate.getForObject(
-            usuariosUrl,
-            UsuarioResponse[].class
-    );
+        // Ejecutamos la llamada HTTP GET hacia el microservicio trasero [cite: 433]
+        ResponseEntity<List<UsuarioResponse>> response = restTemplate.exchange(
+                urlEndpoint,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<UsuarioResponse>>() {}
+        );
 
-    /*
-     * Convierte a List para el controller.
+        return response.getBody(); // Retorna el cuerpo JSON transformado en lista de objetos Java [cite: 551]
+    }
+
+    /**
+     * Intermediario para recuperar la lista de reportes desde ms-reportes[cite: 677].
      */
-    return response != null ? List.of(response) : List.of();
-}
+    public List<ReporteResponse> listarReportes() {
+        String urlEndpoint = msReportesUrl + "/api/reportes"; // Endpoint expuesto en ms-reportes [cite: 433]
+
+        // Ejecutamos la llamada HTTP GET hacia ms-reportes [cite: 433]
+        ResponseEntity<List<ReporteResponse>> response = restTemplate.exchange(
+                urlEndpoint,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<ReporteResponse>>() {}
+        );
+
+        return response.getBody(); // [cite: 572]
+    }
 }
