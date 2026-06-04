@@ -1,4 +1,4 @@
-package cl.valledelsol.bff.service; // Paquete exacto definido en la estructura de tu proyecto 
+package cl.valledelsol.bff.service;
 
 import cl.valledelsol.bff.dto.DashboardResponse;
 import cl.valledelsol.bff.dto.ReporteResponse;
