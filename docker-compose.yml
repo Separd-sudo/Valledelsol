@@ -122,7 +122,7 @@ services:
     networks:
       - valle-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER_KONG} -d ${DB_NAME_KONG}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -147,7 +147,7 @@ services:
       - valle-network
 
   # -------------------------------------------------------
-  # 3. KONG API GATEWAY DEFINITIVO (Modo DB Activado)
+  # 3. KONG API GATEWAY (Modo DB Activado)
   # -------------------------------------------------------
   kong-gateway:
     image: kong:latest
