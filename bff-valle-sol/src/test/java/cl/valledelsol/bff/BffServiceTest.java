@@ -1,4 +1,4 @@
-package cl.valledelsol.bff.service;
+package cl.valledelsol.bff;
 
 import cl.valledelsol.bff.dto.DashboardResponse;
 import cl.valledelsol.bff.dto.ReporteResponse;
@@ -17,7 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
-
+import cl.valledelsol.bff.service.BffService;
 import java.util.ArrayList;
 import java.util.List;
 
