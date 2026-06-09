@@ -50,7 +50,6 @@ services:
   # =======================================================
   ms-reportes:
     # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub con el tag de develop
-    # (Recuerda cambiar 'TU_USUARIO_DOCKER' por tu ID real de Docker Hub)
     image: separdx/ms-reportes:develop
     container_name: ms-reportes
     restart: unless-stopped
@@ -90,7 +89,7 @@ services:
   # BACKEND FOR FRONTEND (BFF)
   # =======================================================
   bff-valle-sol:
-    # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub
+  # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub
     image: separdx/bff-valle-sol:develop
     container_name: bff-valle-sol
     restart: unless-stopped
@@ -99,19 +98,92 @@ services:
       - ms-usuarios
     ports:
       - "${PORT_BFF}:8080"
-    # Variables de entorno para que el BFF localice los microservicios mediante la red de Docker
+  # Variables de entorno para que el BFF localice los microservicios mediante la red de Docker
     environment:
       - MS_USUARIOS_URL=${MS_USUARIOS_URL}
       - MS_REPORTES_URL=${MS_REPORTES_URL}
     networks:
       - valle-network
+  # -------------------------------------------------------
+  # 1. BASE DE DATOS EXCLUSIVA PARA KONG
+  # -------------------------------------------------------
+  kong-database:
+    image: postgres:15-alpine
+    container_name: kong-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${DB_USER_KONG}"
+      POSTGRES_PASSWORD: "${DB_PASS_KONG}"
+      POSTGRES_DB: "${DB_NAME_KONG}"
+    volumes:
+      - kong_db_data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"  
+    networks:
+      - valle-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER_KONG} -d ${DB_NAME_KONG}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  # -------------------------------------------------------
+  # 2. MIGRADOR DE ESQUEMAS (Corre una vez y se apaga)
+  # -------------------------------------------------------
+  kong-migrations:
+    image: kong:latest
+    container_name: kong-migrations
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: "${DB_USER_KONG}"
+      KONG_PG_PASSWORD: "${DB_PASS_KONG}"
+      KONG_PG_DATABASE: "${DB_NAME_KONG}"
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    command: kong migrations bootstrap
+    networks:
+      - valle-network
+
+  # -------------------------------------------------------
+  # 3. KONG API GATEWAY DEFINITIVO (Modo DB Activado)
+  # -------------------------------------------------------
+  kong-gateway:
+    image: kong:latest
+    container_name: kong-gateway
+    restart: unless-stopped
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: "${DB_USER_KONG}"
+      KONG_PG_PASSWORD: "${DB_PASS_KONG}"
+      KONG_PG_DATABASE: "${DB_NAME_KONG}"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl" # Puerto de control
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+    ports:
+      - "${PORT_GATEWAY}:8000" # Tráfico público del sistema
+      - "8001:8001"            # API de administración (para crear las rutas)
+    networks:
+      - valle-network
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+      ms-usuarios:
+        condition: service_started
+      ms-reportes:
+        condition: service_started
 # =========================================================
 # VOLÚMENES PERSISTENTES
 # =========================================================
 volumes:
   postgres_reportes_data:
   postgres_usuarios_data:
+  kong_db_data:
 
 # =========================================================
 # RED INTERNA DEL PROYECTO
