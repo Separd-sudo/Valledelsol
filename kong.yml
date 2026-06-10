@@ -1,0 +1,40 @@
+# =========================================================
+# CONFIGURACIÓN DECLARATIVA DE KONG (MODO DBLESS)
+# MUNICIPALIDAD VALLE DEL SOL
+# =========================================================
+_format_version: "3.0"
+_transform: true
+
+services:
+  # -------------------------------------------------------
+  # 1. MICROSERVICIO DE USUARIOS
+  # -------------------------------------------------------
+  - name: usuarios-service
+    url: http://ms-usuarios:8082         # URL interna de la red Docker
+    routes:
+      - name: usuarios-route-v1
+        paths:
+          - /api/v1/usuarios             # URL pública versionada
+        strip_path: false                # NO recorta el path para evitar el Whitelabel 404
+
+  # -------------------------------------------------------
+  # 2. MICROSERVICIO DE REPORTES
+  # -------------------------------------------------------
+  - name: reportes-service
+    url: http://ms-reportes:8081         # URL interna de la red Docker
+    routes:
+      - name: reportes-route-v1
+        paths:
+          - /api/v1/reportes             # URL pública versionada
+        strip_path: false                # Mantiene la ruta completa hacia Java
+
+  # -------------------------------------------------------
+  # 3. MICROSERVICIO DE AUTENTICACIÓN (AUTH MS)
+  # -------------------------------------------------------
+  - name: auth-service
+    url: http://ms-auth:8083             # Puerto del microservicio de seguridad
+    routes:
+      - name: auth-route-v1
+        paths:
+          - /api/v1/auth                 # El cliente se autenticará directo en el Gateway
+        strip_path: false

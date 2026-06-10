@@ -23,7 +23,7 @@ services:
     ports:
       - "${PORT_DB_REPORTES}:5432" # Lee el puerto mapeado (5433)
     volumes:
-      - postgres_reportes_data:/var/lib/postgresql/data
+      - postgres_reportes_data:/var/lib/postgresql/data # Almacenamiento seguro de reportes
     networks:
       - valle-network
 
@@ -41,7 +41,44 @@ services:
     ports:
       - "${PORT_DB_USUARIOS}:5432"
     volumes:
-      - postgres_usuarios_data:/var/lib/postgresql/data
+      - postgres_usuarios_data:/var/lib/postgresql/data # Almacenamiento seguro de usuarios
+    networks:
+      - valle-network
+
+  # =======================================================
+  # BASE DE DATOS - AUTENTICACIÓN
+  # =======================================================
+  postgres-auth:
+    image: postgres:17
+    container_name: postgres-auth
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "5436:5432"                     # Mapeamos el puerto externo 5436 para no chocar
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data # Almacenamiento seguro de credenciales
+    networks:
+      - valle-network
+
+  # =======================================================
+  # MICROSERVICIO DE AUTENTICACIÓN (ms-auth)
+  # =======================================================
+  ms-auth:
+    image: separdx/ms-auth:develop       # Imagen del repositorio Docker Hub
+    container_name: ms-auth
+    restart: unless-stopped
+    depends_on:
+      - postgres-auth
+    ports:
+      - "8083:8083"                     # Escucha internamente en el puerto 8083
+    environment:
+      # URL de conexión directa a su base de datos dedicada dentro de la red
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-auth:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
     networks:
       - valle-network
 
@@ -49,7 +86,6 @@ services:
   # MICROSERVICIO DE REPORTES
   # =======================================================
   ms-reportes:
-    # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub con el tag de develop
     image: separdx/ms-reportes:develop
     container_name: ms-reportes
     restart: unless-stopped
@@ -69,7 +105,6 @@ services:
   # MICROSERVICIO DE USUARIOS
   # =======================================================
   ms-usuarios:
-    # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub
     image: separdx/ms-usuarios:develop
     container_name: ms-usuarios
     restart: unless-stopped
@@ -89,7 +124,6 @@ services:
   # BACKEND FOR FRONTEND (BFF)
   # =======================================================
   bff-valle-sol:
-  # REEMPLAZO: Cambiamos 'build' por la imagen de tu Docker Hub
     image: separdx/bff-valle-sol:develop
     container_name: bff-valle-sol
     restart: unless-stopped
@@ -98,96 +132,54 @@ services:
       - ms-usuarios
     ports:
       - "${PORT_BFF}:8080"
-  # Variables de entorno para que el BFF localice los microservicios mediante la red de Docker
+    # Variables de entorno para que el BFF localice los microservicios mediante la red de Docker
     environment:
       - MS_USUARIOS_URL=${MS_USUARIOS_URL}
       - MS_REPORTES_URL=${MS_REPORTES_URL}
     networks:
       - valle-network
-  # -------------------------------------------------------
-  # 1. BASE DE DATOS EXCLUSIVA PARA KONG
-  # -------------------------------------------------------
-  kong-database:
-    image: postgres:15-alpine
-    container_name: kong-database
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: "${DB_USER_KONG}"
-      POSTGRES_PASSWORD: "${DB_PASS_KONG}"
-      POSTGRES_DB: "${DB_NAME_KONG}"
-    volumes:
-      - kong_db_data:/var/lib/postgresql/data
-    ports:
-      - "5435:5432"  
-    networks:
-      - valle-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
-  # -------------------------------------------------------
-  # 2. MIGRADOR DE ESQUEMAS (Corre una vez y se apaga)
-  # -------------------------------------------------------
-  kong-migrations:
-    image: kong:latest
-    container_name: kong-migrations
-    environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_USER: "${DB_USER_KONG}"
-      KONG_PG_PASSWORD: "${DB_PASS_KONG}"
-      KONG_PG_DATABASE: "${DB_NAME_KONG}"
-    depends_on:
-      kong-database:
-        condition: service_healthy
-    command: kong migrations bootstrap
-    networks:
-      - valle-network
-
-  # -------------------------------------------------------
-  # 3. KONG API GATEWAY (Modo DB Activado)
-  # -------------------------------------------------------
+  # =======================================================
+  # KONG API GATEWAY (Modo DBless - Sin Base de Datos)
+  # =======================================================
   kong-gateway:
-    image: kong:latest
+    image: kong:3.4-alpine               # Versión liviana y portable de Kong
     container_name: kong-gateway
     restart: unless-stopped
     environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_USER: "${DB_USER_KONG}"
-      KONG_PG_PASSWORD: "${DB_PASS_KONG}"
-      KONG_PG_DATABASE: "${DB_NAME_KONG}"
+      KONG_DATABASE: "off"               # <-- APAGA LA BASE DE DATOS (Feedback del Profesor)
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml # Ruta interna en el contenedor
       KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
-      KONG_ADMIN_LISTEN: "0.0.0.0:8001, 0.0.0.0:8444 ssl" # Puerto de control
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
+    volumes:
+      # Montamos tu archivo local kong.yml dentro del contenedor en tiempo real
+      - ./kong.yml:/usr/local/kong/declarative/kong.yml
     ports:
-      - "${PORT_GATEWAY}:8000" # Tráfico público del sistema
-      - "8001:8001"            # API de administración (para crear las rutas)
+      - "${PORT_GATEWAY}:8000"           # Tráfico público del sistema (Puerto 8000)
     networks:
       - valle-network
     depends_on:
-      kong-database:
-        condition: service_healthy
-      kong-migrations:
-        condition: service_completed_successfully
-      ms-usuarios:
-        condition: service_started
-      ms-reportes:
-        condition: service_started
+      - ms-usuarios
+      - ms-reportes
+
 # =========================================================
-# VOLÚMENES PERSISTENTES
+# SECCIÓN GLOBAL DE VOLÚMENES PERSISTENTES (DECLARACIÓN MAVEN/DOCKER)
+# =========================================================
+# Aquí registramos formalmente los discos duros virtuales que 
+# usarán los contenedores de PostgreSQL para no perder datos.
 # =========================================================
 volumes:
   postgres_reportes_data:
+    driver: local                        # Persistencia local para el módulo de incendios
   postgres_usuarios_data:
-  kong_db_data:
+    driver: local                        # Persistencia local para el módulo de perfiles
+  postgres_auth_data:
+    driver: local                        # Persistencia local para el módulo de seguridad JWT
 
 # =========================================================
 # RED INTERNA DEL PROYECTO
 # =========================================================
 networks:
   valle-network:
-    driver: bridge
+    driver: bridge                       # Crea el puente de red aislado para el ecosistema
