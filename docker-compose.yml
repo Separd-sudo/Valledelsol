@@ -26,6 +26,23 @@ services:
       - postgres_reportes_data:/var/lib/postgresql/data # Almacenamiento seguro de reportes
     networks:
       - valle-network
+# =======================================================
+# BASE DE DATOS - ALERTAS
+# =======================================================
+  postgres-alertas:
+    image: postgres:17
+    container_name: postgres-alertas
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME_ALERTAS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "${PORT_DB_ALERTAS}:5432" # Lee el puerto mapeado (5433)
+    volumes:
+      - postgres_alertas_data:/var/lib/postgresql/data # Almacenamiento seguro de alertas
+    networks:
+      - valle-network
 
   # =======================================================
   # BASE DE DATOS - USUARIOS
@@ -67,7 +84,7 @@ services:
   # MICROSERVICIO DE AUTENTICACIÓN (ms-auth)
   # =======================================================
   ms-auth:
-    image: separdx/ms-auth:develop       # Imagen del repositorio Docker Hub
+    image: separdx/ms-auth:develop     # Imagen del repositorio Docker Hub
     container_name: ms-auth
     restart: unless-stopped
     depends_on:
@@ -81,7 +98,23 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
     networks:
       - valle-network
-
+  # ======================================================
+  # MICROSERVICIO DE ALERTAS
+  # =======================================================
+  ms-alertas:
+    image: separdx/ms-alertas:develop
+    container_name: ms-alertas
+    restart: unless-stopped
+    depends_on:
+      - postgres-alertas
+    ports:
+      - "${PORT_MS_ALERTAS}:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:${SPRING_DATASOURCE_URL_ALERTAS}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
+    networks:
+      - valle-network
   # =======================================================
   # MICROSERVICIO DE REPORTES
   # =======================================================
@@ -143,7 +176,7 @@ services:
   # KONG API GATEWAY (Modo DBless - Sin Base de Datos)
   # =======================================================
   kong-gateway:
-    image: kong:3.4-alpine               # Versión liviana y portable de Kong
+    image: kong:latest       # Versión liviana y portable de Kong
     container_name: kong-gateway
     restart: unless-stopped
     environment:
