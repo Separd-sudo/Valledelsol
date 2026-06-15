@@ -180,7 +180,7 @@ services:
     container_name: kong-gateway
     restart: unless-stopped
     environment:
-      KONG_DATABASE: "off"               # <-- APAGA LA BASE DE DATOS (Feedback del Profesor)
+      KONG_DATABASE: "off"               # <-- APAGA LA BASE DE DATOS
       KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml # Ruta interna en el contenedor
       KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
@@ -195,6 +195,7 @@ services:
     depends_on:
       - ms-usuarios
       - ms-reportes
+      - ms-alertas
 
 # =========================================================
 # SECCIÓN GLOBAL DE VOLÚMENES PERSISTENTES (DECLARACIÓN MAVEN/DOCKER)
@@ -209,7 +210,8 @@ volumes:
     driver: local                        # Persistencia local para el módulo de perfiles
   postgres_auth_data:
     driver: local                        # Persistencia local para el módulo de seguridad JWT
-
+  postgres_alertas_data:
+    driver: local                        # Persistencia local para el módulo de alertas 
 # =========================================================
 # RED INTERNA DEL PROYECTO
 # =========================================================
