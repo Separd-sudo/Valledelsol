@@ -63,6 +63,12 @@
             <optional>true</optional>
         </dependency>
 
+		<!-- Permite la integración con Kafka para mensajería asíncrona -->
+        <dependency>
+			<groupId>org.springframework.kafka</groupId>
+	       <artifactId>spring-kafka</artifactId>
+        </dependency>
+		
         <!-- Pruebas unitarias e integración con JUnit -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
