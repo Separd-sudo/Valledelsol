@@ -12,22 +12,28 @@ public class ReporteResponse {
     private String titulo;
     private String descripcion;
     private String ubicacion;
+    private String sector; 
     private String nivelRiesgo;
     private String estado;
     private LocalDateTime fechaCreacion;
+    private Double latitud;   // Para mostrar en el mapa del frontend
+    private Double longitud;  // Para mostrar en el mapa del frontend
 
     public ReporteResponse() {
     }
 
-    public ReporteResponse(Long id, String titulo, String descripcion, String ubicacion,
-                           String nivelRiesgo, String estado, LocalDateTime fechaCreacion) {
+    public ReporteResponse(Long id, String titulo, String descripcion, String ubicacion, String sector,
+                           String nivelRiesgo, String estado, LocalDateTime fechaCreacion, Double latitud, Double longitud) {
         this.id = id;
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.ubicacion = ubicacion;
+        this.sector = sector;
         this.nivelRiesgo = nivelRiesgo;
         this.estado = estado;
         this.fechaCreacion = fechaCreacion;
+        this.latitud = latitud;
+        this.longitud = longitud;
     }
 
     public Long getId() {
@@ -45,6 +51,10 @@ public class ReporteResponse {
     public String getUbicacion() {
         return ubicacion;
     }
+    
+    public String getSector() {
+        return sector;
+    }
 
     public String getNivelRiesgo() {
         return nivelRiesgo;
@@ -56,5 +66,13 @@ public class ReporteResponse {
 
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
     }
 }
