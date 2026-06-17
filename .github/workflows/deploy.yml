@@ -13,13 +13,13 @@ jobs:
     name: Compilar y Subir Microservicios
     runs-on: ubuntu-latest
     
-    # Estrategia de matriz para procesar los 3 microservicios en paralelo
+    # Estrategia de matriz para procesar los 7 microservicios en paralelo
     strategy:
       matrix:
-        service: [bff-valle-sol, ms-reportes, ms-usuarios]
+        service: [bff-valle-sol, ms-reportes, ms-usuarios,  ms-auth, ms-geografico, ms-alertas, ms-analitica] # Lista de carpetas de los microservicios
 
     steps:
-      # Paso 1: Clonar el código del repositorio en la máquina virtual de GitHub
+      # Paso 1: Clonar el código del repositorio en la máquina virtual de GitHub actions
       - name: Descargar Código del Repositorio
         uses: actions/checkout@v4
 
