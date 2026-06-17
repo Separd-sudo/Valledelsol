@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Brand/PROYECTOSGIT/Valledelsol/frontend-valle-sol/src/app/page.js"],"sourcesContent":["\"use client\"; // Obligatorio en Next.js para usar Hooks\r\n\r\nimport React from 'react';\r\n\r\n// Función con export default obligatorio\r\nexport default function Home() {\r\n  return (\r\n    <div style={{ padding: '40px', textAlign: 'center' }}>\r\n      <h1 style={{ color: '#1E293B' }}>☀️ Municipalidad Valle del Sol</h1>\r\n      <p style={{ color: '#64748B' }}>Entorno Next.js montado con éxito.</p>\r\n    </div>\r\n  );\r\n}"],"names":["Home","style","padding","textAlign","color"],"mappings":";;;;;AAEA;AAFA,cAAc,yCAAyC;;;AAKxC,SAASA;IACtB,qBACE,0QAAC;QAAIC,OAAO;YAAEC,SAAS;YAAQC,WAAW;QAAS;;0BACjD,0QAAC;gBAAGF,OAAO;oBAAEG,OAAO;gBAAU;0BAAG;;;;;;0BACjC,0QAAC;gBAAEH,OAAO;oBAAEG,OAAO;gBAAU;0BAAG;;;;;;;;;;;;AAGtC"}},
-    {"offset": {"line": 51, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Brand/PROYECTOSGIT/Valledelsol/frontend-valle-sol/node_modules/next/src/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = (\n  require('../../module.compiled') as typeof import('../../module.compiled')\n).vendored['react-ssr']!.ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":"AAAAA,OAAOC,OAAO,GACZC,QAAQ,+IACRC,QAAQ,CAAC,YAAY,CAAEC,kBAAkB","ignoreList":[0]}}]
-}

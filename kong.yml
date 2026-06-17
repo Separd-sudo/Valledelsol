@@ -10,7 +10,7 @@ services:
   # 1. MICROSERVICIO DE USUARIOS
   # -------------------------------------------------------
   - name: usuarios-service
-    url: http://ms-usuarios:8082/api/v1/usuarios         # URL interna de la red Docker
+    url: http://ms-usuarios:8082         # URL interna de la red Docker
     routes:
       - name: usuarios-route-v1
         paths:
@@ -21,7 +21,7 @@ services:
   # 2. MICROSERVICIO DE REPORTES
   # -------------------------------------------------------
   - name: reportes-service
-    url: http://ms-reportes:8081/api/v1/reportes
+    url: http://ms-reportes:8081
     routes:
       - name: reportes-route-v1
         paths:
@@ -32,7 +32,7 @@ services:
   # 3. MICROSERVICIO DE AUTENTICACIÓN (AUTH MS)
   # -------------------------------------------------------
   - name: auth-service
-    url: http://ms-auth:8083/api/v1/auth             # Puerto del microservicio de seguridad
+    url: http://ms-auth:8083            # Puerto del microservicio de seguridad
     routes:
       - name: auth-route-v1
         paths:
@@ -43,7 +43,7 @@ services:
   # 4. MICROSERVICIO DE GEOGRAFICO
   # -------------------------------------------------------
   - name: geografico-service
-    url: http://ms-geografico:8086/api/v1/geografico         # URL interna de la red Docker
+    url: http://ms-geografico:8086        # URL interna de la red Docker
     routes:
       - name: geografico-route-v1
         paths:
@@ -54,7 +54,7 @@ services:
   # 5. MICROSERVICIO DE ALERTAS
   # -------------------------------------------------------
   - name: alertas-service
-    url: http://ms-alertas:8084/api/v1/alertas        # URL interna de la red Docker
+    url: http://ms-alertas:8084       # URL interna de la red Docker
     routes:
       - name: alertas-route-v1
         paths:
@@ -65,7 +65,7 @@ services:
   # 6. MICROSERVICIO ANALITICA
   # -------------------------------------------------------
   - name: analitica-service
-    url: http://ms-analitica:8085/api/v1/analitica        # URL interna de la red Docker
+    url: http://ms-analitica:8085        # URL interna de la red Docker
     routes:
       - name: analitica-route-v1
         paths:
@@ -76,7 +76,7 @@ services:
   # 7. MICROSERVICIO BFF (MUNICIPALIDAD VALLE DEL SOL)
   # -------------------------------------------------------  
   - name: bff-service
-    url: http://bff-valle-sol:8080/api/v1/bff         # URL interna de la red Docker
+    url: http://bff-valle-sol:8080      # URL interna de la red Docker
     routes:
       - name: bff-route-v1
         paths:

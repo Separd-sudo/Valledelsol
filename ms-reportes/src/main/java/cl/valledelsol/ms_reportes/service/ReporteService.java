@@ -14,7 +14,6 @@ public class ReporteService {
     @Autowired
     private ReporteRepository reporteRepository;
 
-    // Inyectamos la plantilla nativa de Spring Kafka para emitir registros robustos en formato JSON
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -22,21 +21,16 @@ public class ReporteService {
      * LOGICA DE NEGOCIO PRINCIPAL (Persistencia + Evento Asíncrono)
      */
     public Reporte crearReporte(Reporte nuevoReporte) {
-        // Seteamos los valores iniciales por defecto antes de guardar
         nuevoReporte.setEstado("ACTIVO");
         nuevoReporte.setFechaCreacion(LocalDateTime.now());
         
-        // 1. Guardado síncrono en la base de datos dedicada (postgres-reportes)
         Reporte reporteGuardado = reporteRepository.save(nuevoReporte);
         System.out.println("💾 [MS-REPORTES] Incendio guardado en la BD con ID local: " + reporteGuardado.getId());
 
-        // 2. Transmisión asíncrona hacia el Middleware corporativo Apache Kafka
         try {
-            // Enviamos todo el objeto persistido al tópico unificado. Jackson lo serializará a JSON de forma automática.
             kafkaTemplate.send("alertas-incendios", reporteGuardado);
             System.out.println("🚀 [MS-REPORTES ➔ KAFKA] Evento distribuido exitosamente en el bus general de Valle del Sol.");
         } catch (Exception e) {
-            // Evitamos que la aplicación colapse si el broker está caído. Tolerancia a fallos.
             System.err.println("❌ Error de comunicación no bloqueante con Apache Kafka: " + e.getMessage());
         }
 

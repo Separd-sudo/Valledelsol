@@ -29,7 +29,11 @@ Thumbs.db
 # ---------------------------------------------------------
 # ARCHIVOS COMPILADOS DE MAVEN / SPRING BOOT 
 # ---------------------------------------------------------
-
+**/target/
+**/*.jar
+**/node_modules/
+**/.next/
+**/.DS_Store
 target/
 *.class
 *.jar
