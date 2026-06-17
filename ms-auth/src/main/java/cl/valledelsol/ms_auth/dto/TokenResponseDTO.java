@@ -5,53 +5,59 @@ package cl.valledelsol.ms_auth.dto;
  */
 public class TokenResponseDTO {
 
-    private String accessToken;
+    private String tokenJwt; // 🔑 Sincronizado con res.data en tu page.js
+    private String rol;      // 🔑 Agregado para desestructuración del Front
+    private String nombre;   // 🔑 Agregado para desestructuración del Front
     private String tokenType;
     private Long expiresIn;
-
-    // =========================================================
-    // CONSTRUCTORES
-    // =========================================================
 
     public TokenResponseDTO() {
     }
 
-    public TokenResponseDTO(String accessToken, String tokenType, Long expiresIn) {
-        this.accessToken = accessToken;
+    public TokenResponseDTO(String tokenJwt, String rol, String nombre, String tokenType, Long expiresIn) {
+        this.tokenJwt = tokenJwt;
+        this.rol = rol;
+        this.nombre = nombre;
         this.tokenType = tokenType;
         this.expiresIn = expiresIn;
     }
 
-    // =========================================================
-    // GETTERS Y SETTERS
-    // =========================================================
-
-    // Obtiene el token de acceso string
-    public String getAccessToken() {
-        return accessToken;
+    public String getTokenJwt() {
+        return tokenJwt;
     }
 
-    // Asigna el token generado por el servidor de seguridad
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public void setTokenJwt(String tokenJwt) {
+        this.tokenJwt = tokenJwt;
     }
 
-    // Obtiene el tipo de token (Generalmente "Bearer")
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
     public String getTokenType() {
         return tokenType;
     }
 
-    // Asigna el tipo de token
     public void setTokenType(String tokenType) {
         this.tokenType = tokenType;
     }
 
-    // Obtiene el tiempo de expiración en segundos
     public Long getExpiresIn() {
         return expiresIn;
     }
 
-    // Asigna el tiempo de vida del token
     public void setExpiresIn(Long expiresIn) {
         this.expiresIn = expiresIn;
     }

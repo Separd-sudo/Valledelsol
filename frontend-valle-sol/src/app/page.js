@@ -45,30 +45,43 @@ export default function Home() {
     .catch(err => console.error("Error al refrescar Dashboard:", err));
   };
 
-  // --- CONTROLADOR DEL LOGIN (Conexión con ms-auth) ---
-  const manejarLogin = (e) => {
+  // --- CONTROLADOR DEL LOGIN (Conexión con ms-auth vía BFF) ---
+  const manejarLogin = async (e) => {
     e.preventDefault();
-    
-    // Petición al endpoint de autenticación mediante el Gateway de Kong
-    axios.post('/api/v1/auth/login', credenciales)
-      .then((res) => {
-        const { tokenJwt, rol, nombre } = res.data; // Datos que retorna tu ms-auth
-        
-        // Persistimos en el navegador para evitar pérdidas al dar F5
-        localStorage.setItem('token_valle_sol', tokenJwt);
-        localStorage.setItem('rol_valle_sol', rol);
-        localStorage.setItem('nombre_valle_sol', nombre);
 
-        setToken(tokenJwt);
-        setRolActivo(rol);
-        setUsuarioLogueado(nombre);
-        
-        mostrarBanner(`🔐 Sesión iniciada como ${nombre} con éxito.`);
-        cargarDashboard(tokenJwt);
-      })
-      .catch((err) => {
-        alert("❌ Credenciales inválidas. Revisa el estado de ms-auth.");
-      });
+    // 🚀 Rescatamos los valores desde tu objeto de estado 'credenciales'
+    const datosLogin = {
+      email: credenciales.email,       
+      password: credenciales.password  
+    };
+
+    try {
+      // 🔑 Petición limpia usando async/await recta al BFF
+      const res = await axios.post(
+        "http://localhost:8080/api/v1/bff/auth/login", 
+        datosLogin
+      );
+
+      // 🚀 Desestructuramos los datos que retorna ms-auth
+      const { tokenJwt, rol, nombre } = res.data;
+
+      // Persistimos en el navegador usando tus llaves reales para evitar pérdidas con F5
+      localStorage.setItem('token_valle_sol', tokenJwt);
+      localStorage.setItem('rol_valle_sol', rol);
+      localStorage.setItem('nombre_valle_sol', nombre);
+
+      // Actualizamos los estados reactivos de la aplicación
+      setToken(tokenJwt);
+      setRolActivo(rol);
+      setUsuarioLogueado(nombre);
+
+      mostrarBanner(`🔐 Sesión iniciada como ${nombre} con éxito.`);
+      cargarDashboard(tokenJwt);
+
+    } catch (error) {
+      console.error("Error al autenticar:", error);
+      alert("❌ Credenciales inválidas. Revisa el estado de ms-auth o del BFF.");
+    }
   };
 
   const manejarCierreSesion = () => {

@@ -1,36 +1,26 @@
 package cl.valledelsol.ms_reportes.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import java.io.Serializable;
 
-/**
- * DTO que captura los datos de entrada desde el exterior.
- */
-public class ReporteRequest {
+public class ReporteRequest implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    @NotBlank(message = "El título no puede estar vacío")
     private String titulo;
-
-    @NotBlank(message = "La descripción no puede estar vacía")
-    @Size(max = 1000, message = "La descripción no puede superar los 1000 caracteres")
     private String descripcion;
-
-    @NotBlank(message = "La ubicación no puede estar vacía")
     private String ubicacion;
+    private String nivelRiesgo; // 🔑 CORREGIDO: Tu variable real
 
-    @NotBlank(message = "El nivel de riesgo no puede estar vacío")
-    private String nivelRiesgo;
+    public ReporteRequest() {
+    }
 
-    // Campos opcionales para el PATCH de actualización de estado y coordenadas
-    private String estado;
-    private Double latitud;
-    private Double longitud;
+    public ReporteRequest(String titulo, String descripcion, String ubicacion, String nivelRiesgo) {
+        this.titulo = titulo;
+        this.descripcion = descripcion;
+        this.ubicacion = ubicacion;
+        this.nivelRiesgo = nivelRiesgo;
+    }
 
-    public ReporteRequest() {}
-
-    // =========================================================
-    // GETTERS Y SETTERS COMPLETOS
-    // =========================================================
+    // Getters y Setters
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
 
@@ -42,13 +32,4 @@ public class ReporteRequest {
 
     public String getNivelRiesgo() { return nivelRiesgo; }
     public void setNivelRiesgo(String nivelRiesgo) { this.nivelRiesgo = nivelRiesgo; }
-
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
-
-    public Double getLatitud() { return latitud; }
-    public void setLatitud(Double latitud) { this.latitud = latitud; }
-
-    public Double getLongitud() { return longitud; }
-    public void setLongitud(Double longitud) { this.longitud = longitud; }
 }

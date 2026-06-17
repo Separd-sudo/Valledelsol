@@ -1,59 +1,73 @@
 package cl.valledelsol.bff.controller;
 
-import cl.valledelsol.bff.dto.DashboardResponse;
-import cl.valledelsol.bff.dto.UsuarioResponse;
-import cl.valledelsol.bff.dto.UsuarioRequest;
-import cl.valledelsol.bff.dto.ReporteResponse;
 import cl.valledelsol.bff.service.BffService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import java.util.Map;
 
-/*
- * Controlador REST del BFF (Backend For Frontend).
- *
- * Este componente expone endpoints únicos para el frontend,
- * evitando que el frontend llame directamente a los microservicios.
- */
 @RestController
 @RequestMapping("/api/v1/bff")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class BffController {
 
     private final BffService bffService;
+    private final RestTemplate restTemplate;
 
-    public BffController(BffService bffService) {
+    // Aprovechamos el RestTemplate inyectado nativamente por el arquetipo
+    public BffController(BffService bffService, RestTemplate restTemplate) {
         this.bffService = bffService;
+        this.restTemplate = restTemplate;
     }
 
-    /*
-     * Endpoint principal del dashboard.
-     * Consolida información de múltiples microservicios.
-     */
     @GetMapping("/dashboard")
-    public ResponseEntity<DashboardResponse> obtenerDashboard() {
+    public ResponseEntity<?> obtenerDashboard() {
         return ResponseEntity.ok(bffService.obtenerDashboard());
     }
 
-    /*
-     * Lista usuarios desde ms-usuarios.
-     * El BFF actúa como intermediario.
-     */
     @PostMapping("/usuarios")
-    public ResponseEntity<?> registrarUsuario(@RequestBody UsuarioRequest request) {
-        Object respuesta = bffService.registrarUsuario(request);
-        return ResponseEntity.ok(respuesta);
-    }
-    @GetMapping("/usuarios")
-    public ResponseEntity<List<UsuarioResponse>> listarUsuarios() {
-        return ResponseEntity.ok(bffService.listarUsuarios());
+    public ResponseEntity<?> registrarUsuario(@RequestBody Map<String, Object> requestBody) {
+        try {
+            Object response = bffService.registrarUsuario(requestBody);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error en pasarela de usuarios BFF: " + e.getMessage());
+        }
     }
 
-    /*
-     * Lista reportes desde ms-reportes.
-     */
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, Object> loginBody) {
+        try {
+            String urlMsAuth = "http://ms-auth:8080/api/v1/auth/login";
+            ResponseEntity<Object> response = restTemplate.postForEntity(urlMsAuth, loginBody, Object.class);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error en pasarela de autenticación BFF: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/reportes")
+    public ResponseEntity<?> crearReporte(@RequestBody Map<String, Object> reporteBody) {
+        try {
+            String urlMsReportes = "http://ms-reportes:8080/api/v1/reportes";
+            ResponseEntity<Object> response = restTemplate.postForEntity(urlMsReportes, reporteBody, Object.class);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error en pasarela de creación de reportes BFF: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/reportes")
-    public ResponseEntity<List<ReporteResponse>> listarReportes() {
-        return ResponseEntity.ok(bffService.listarReportes());
+    public ResponseEntity<?> listarReportes() {
+        try {
+            String urlMsReportes = "http://ms-reportes:8080/api/v1/reportes";
+            ResponseEntity<Object[]> response = restTemplate.getForEntity(urlMsReportes, Object[].class);
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al recuperar listado de reportes en BFF: " + e.getMessage());
+        }
     }
 }
