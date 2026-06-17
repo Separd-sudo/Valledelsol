@@ -57,6 +57,12 @@ public class Reporte {
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
 
+    @Column(nullable = false)
+    private Double latitud; // Coordenada geográfica para Monitoreo Geográfico      
+
+    @Column(nullable = false)
+    private Double longitud; // Coordenada geográfica para Monitoreo Geográfico     
+
     /*
      * Constructor vacío obligatorio para JPA.
      */
@@ -117,5 +123,21 @@ public class Reporte {
 
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(Double latitud) {
+        this.latitud = latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(Double longitud) {
+        this.longitud = longitud;
     }
 }

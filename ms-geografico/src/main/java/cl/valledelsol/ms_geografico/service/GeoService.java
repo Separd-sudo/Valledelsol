@@ -18,14 +18,15 @@ public class GeoService {
      */
     public void registrarPuntoMapa(GeoEventDTO evento) {
         CoordenadaIncendio geo = new CoordenadaIncendio();
-        geo.setIdReporte(evento.getIdReporte());
-        geo.setSector(evento.getSector());
+        geo.setIdGeo(null);
+        geo.setIdReporte(evento.getId());
+        geo.setSector(evento.getUbicacion());
         geo.setLatitud(evento.getLatitud());
         geo.setLongitud(evento.getLongitud());
         geo.setEstado(evento.getEstado());
 
         repository.save(geo);
-        System.out.println("📍 [MS-GEOGRAFICO] Coordenadas guardadas para el mapa interactivo. Reporte ID: " + evento.getIdReporte());
+        System.out.println("📍 [MS-GEOGRAFICO] Coordenadas guardadas para el mapa interactivo. Reporte ID: " + evento.getId());
     }
 
     /**

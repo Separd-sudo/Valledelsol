@@ -15,7 +15,7 @@ describe('Pruebas Unitarias del Frontend - Valle del Sol ☀️', () => {
     expect(configuracionNpm.version).toBe('1.0.0')
   })
 
-  // PRUEBA 3: Validar que la URL del BFF apunte al puerto correcto (¡YA CORREGIDA!)
+  // PRUEBA 3: Validar que la URL del BFF apunte al puerto correcto (YA CORREGIDA!)
   test('3. Verificar que la configuración de red apunte al puerto correcto del BFF (8080)', () => {
     const BFF_URL = 'http://localhost:8080/api'
     

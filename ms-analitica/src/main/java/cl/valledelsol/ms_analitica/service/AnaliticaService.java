@@ -33,7 +33,7 @@ public class AnaliticaService {
     /**
      * Retorna todos los registros guardados para auditoría de la municipalidad.
      */
-    public List<RegistroHistorica> obtenerTodoElHistorial() {
+    public List<RegistroHistorico> obtenerTodoElHistorial() {
         return repository.findAll();
     }
 }

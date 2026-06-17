@@ -5,8 +5,8 @@ package cl.valledelsol.ms_geografico.dto;
  * Captura específicamente las propiedades espaciales del incidente.
  */
 public class GeoEventDTO {
-    private Long idReporte;
-    private String sector;
+    private Long id;
+    private String ubicacion;
     private Double latitud;
     private Double longitud;
     private String estado;
@@ -14,11 +14,11 @@ public class GeoEventDTO {
     public GeoEventDTO() {}
 
     // Getters y Setters explícitos
-    public Long getIdReporte() { return idReporte; }
-    public void setIdReporte(Long idReporte) { this.idReporte = idReporte; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getSector() { return sector; }
-    public void setSector(String sector) { this.sector = sector; }
+    public String getUbicacion() { return ubicacion; }
+    public void setUbicacion(String ubicacion) { this.ubicacion = ubicacion; }
 
     public Double getLatitud() { return latitud; }
     public void setLatitud(Double latitud) { this.latitud = latitud; }

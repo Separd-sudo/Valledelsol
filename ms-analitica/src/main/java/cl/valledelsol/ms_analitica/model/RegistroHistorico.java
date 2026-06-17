@@ -37,7 +37,7 @@ public class RegistroHistorico {
     public Long getIdInterno() { return idInterno; }
     public void setIdInterno(Long idInterno) { this.idInterno = idInterno; }
 
-    public Long getIdReporteOriginal() { return idReportOriginal; }
+    public Long getIdReporteOriginal() { return idReporteOriginal; }
     public void setIdReporteOriginal(Long idReporteOriginal) { this.idReporteOriginal = idReporteOriginal; }
 
     public String getDescripcion() { return descripcion; }

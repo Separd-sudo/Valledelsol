@@ -9,6 +9,43 @@
 
 services:
 
+  #=======================================================
+  # SERVICIO DE ZOOKEEPER (Requisito para Kafka)
+  #=======================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    restart: unless-stopped
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    ports:
+      - "2181:2181" # Puerto estándar de Zookeeper
+    networks:
+      - valle-network
+
+  #======================================================
+  # SERVICIO DE KAFKA (Eje central de la arquitectura EDA)
+  #======================================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092" # Puerto estándar de Kafka
+    networks:
+      - valle-network
+
   # =======================================================
   # BASE DE DATOS - REPORTES
   # =======================================================
@@ -21,14 +58,15 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
     ports:
-      - "${PORT_DB_REPORTES}:5432" # Lee el puerto mapeado (5433)
+      - "${PORT_DB_REPORTES}:5432" # Lee el puerto mapeado (5434)
     volumes:
-      - postgres_reportes_data:/var/lib/postgresql/data # Almacenamiento seguro de reportes
+      - postgres_reportes_data:/var/lib/postgresql/data
     networks:
       - valle-network
-# =======================================================
-# BASE DE DATOS - ALERTAS
-# =======================================================
+
+  # =======================================================
+  # BASE DE DATOS - ALERTAS
+  # =======================================================
   postgres-alertas:
     image: postgres:17
     container_name: postgres-alertas
@@ -40,7 +78,7 @@ services:
     ports:
       - "${PORT_DB_ALERTAS}:5432" # Lee el puerto mapeado (5433)
     volumes:
-      - postgres_alertas_data:/var/lib/postgresql/data # Almacenamiento seguro de alertas
+      - postgres_alertas_data:/var/lib/postgresql/data
     networks:
       - valle-network
 
@@ -56,9 +94,9 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
     ports:
-      - "${PORT_DB_USUARIOS}:5432"
+      - "${PORT_DB_USUARIOS}:5432" # Lee el puerto mapeado (5433)
     volumes:
-      - postgres_usuarios_data:/var/lib/postgresql/data # Almacenamiento seguro de usuarios
+      - postgres_usuarios_data:/var/lib/postgresql/data
     networks:
       - valle-network
 
@@ -74,9 +112,45 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
     ports:
-      - "5436:5432"                     # Mapeamos el puerto externo 5436 para no chocar
+      - "5436:5432" # Mapeamos el puerto externo 5436 seguro
     volumes:
-      - postgres_auth_data:/var/lib/postgresql/data # Almacenamiento seguro de credenciales
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - valle-network
+
+  # =======================================================
+  # BASE DE DATOS - HISTORIAL Y ANALÍTICA
+  # =======================================================
+  postgres-analitica:
+    image: postgres:17
+    container_name: postgres-analitica
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME_ANALITICA:-analitica_db}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "${PORT_DB_ANALITICA:-5437}:5432" # Lee el puerto parametrizado o fallback a 5437
+    volumes:
+      - postgres_analitica_data:/var/lib/postgresql/data
+    networks:
+      - valle-network
+
+  # =======================================================
+  # BASE DE DATOS - MONITOREO GEOGRÁFICO
+  # =======================================================
+  postgres-geografico:
+    image: postgres:17
+    container_name: postgres-geografico
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME_GEOGRAFICO:-geografico_db}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "${PORT_DB_GEOGRAFICO:-5438}:5432" # Lee el puerto parametrizado o fallback a 5438
+    volumes:
+      - postgres_geografico_data:/var/lib/postgresql/data
     networks:
       - valle-network
 
@@ -84,29 +158,33 @@ services:
   # MICROSERVICIO DE AUTENTICACIÓN (ms-auth)
   # =======================================================
   ms-auth:
-    image: separdx/ms-auth:develop     # Imagen del repositorio Docker Hub
+    image: separdx/ms-auth:develop
     container_name: ms-auth
     restart: unless-stopped
     depends_on:
       - postgres-auth
     ports:
-      - "8083:8083"                     # Escucha internamente en el puerto 8083
+      - "8083:8083"
     environment:
-      # URL de conexión directa a su base de datos dedicada dentro de la red
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-auth:5432/auth_db
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
     networks:
       - valle-network
-  # ======================================================
+
+  # =======================================================
   # MICROSERVICIO DE ALERTAS
   # =======================================================
   ms-alertas:
-    image: separdx/ms-alertas:develop
+   # image: separdx/ms-alertas:develop
+    build:
+      context: ./ms-alertas     # <--- Apunta a tu carpeta local
+      dockerfile: Dockerfile    # <--- Usa tu Dockerfile con Maven
     container_name: ms-alertas
     restart: unless-stopped
     depends_on:
       - postgres-alertas
+      - kafka
     ports:
       - "${PORT_MS_ALERTAS}:8084"
     environment:
@@ -115,6 +193,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
     networks:
       - valle-network
+
   # =======================================================
   # MICROSERVICIO DE REPORTES
   # =======================================================
@@ -124,9 +203,9 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres-reportes
+      - kafka
     ports:
       - "${PORT_MS_REPORTES}:8081"
-    # Variables de entorno para que Spring Boot sepa cómo conectarse a la base de datos dentro de la red Docker
     environment:
       - SPRING_DATASOURCE_URL=jdbc:${SPRING_DATASOURCE_URL_REPORTES}
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
@@ -145,9 +224,52 @@ services:
       - postgres-usuarios
     ports:
       - "${PORT_MS_USUARIOS}:8082"
-    # Variables de entorno para la conexión a la base de datos de usuarios
     environment:
       - SPRING_DATASOURCE_URL=jdbc:${SPRING_DATASOURCE_URL_USUARIOS}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
+    networks:
+      - valle-network
+
+  # =======================================================
+  # MICROSERVICIO DE HISTORIAL Y ANALÍTICA
+  # =======================================================
+  ms-analitica:
+    #image: separdx/ms-analitica:develop
+    build:
+      context: ./ms-analitica     # <--- Apunta a tu carpeta local
+      dockerfile: Dockerfile    # <--- Usa tu Dockerfile con Maven
+    container_name: ms-analitica
+    restart: unless-stopped
+    depends_on:
+      - postgres-analitica
+      - kafka
+    ports:
+      - "${PORT_MS_ANALITICA:-8085}:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-analitica:5432/${DB_NAME_ANALITICA:-analitica_db}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
+    networks:
+      - valle-network
+
+  # =======================================================
+  # MICROSERVICIO DE MONITOREO GEOGRÁFICO
+  # =======================================================
+  ms-geografico:
+    #image: separdx/ms-geografico:develop
+    build:
+       context: ./ms-geografico     # <--- Apunta a tu carpeta local
+       dockerfile: Dockerfile    # <--- Usa tu Dockerfile con Maven
+    container_name: ms-geografico
+    restart: unless-stopped
+    depends_on:
+      - postgres-geografico
+      - kafka
+    ports:
+      - "${PORT_MS_GEOGRAFICO:-8086}:8086"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-geografico:5432/${DB_NAME_GEOGRAFICO:-geografico_db}
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
     networks:
@@ -163,58 +285,66 @@ services:
     depends_on:
       - ms-reportes
       - ms-usuarios
+      - ms-analitica
+      - ms-geografico
     ports:
       - "${PORT_BFF}:8080"
-    # Variables de entorno para que el BFF localice los microservicios mediante la red de Docker
     environment:
       - MS_USUARIOS_URL=${MS_USUARIOS_URL}
       - MS_REPORTES_URL=${MS_REPORTES_URL}
+      - MS_ANALITICA_URL=http://kong-gateway:8000
+      - MS_GEOGRAFICO_URL=http://kong-gateway:8000
     networks:
       - valle-network
 
   # =======================================================
-  # KONG API GATEWAY (Modo DBless - Sin Base de Datos)
+  # KONG API GATEWAY (Modo DBless)
   # =======================================================
   kong-gateway:
-    image: kong:latest       # Versión liviana y portable de Kong
+    image: kong:latest
     container_name: kong-gateway
     restart: unless-stopped
     environment:
-      KONG_DATABASE: "off"               # <-- APAGA LA BASE DE DATOS
-      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml # Ruta interna en el contenedor
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
       KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
     volumes:
-      # Montamos tu archivo local kong.yml dentro del contenedor en tiempo real
       - ./kong.yml:/usr/local/kong/declarative/kong.yml
     ports:
-      - "${PORT_GATEWAY}:8000"           # Tráfico público del sistema (Puerto 8000)
+      - "${PORT_GATEWAY}:8000"
     networks:
       - valle-network
     depends_on:
       - ms-usuarios
       - ms-reportes
       - ms-alertas
+      - ms-analitica
+      - ms-geografico
 
 # =========================================================
-# SECCIÓN GLOBAL DE VOLÚMENES PERSISTENTES (DECLARACIÓN MAVEN/DOCKER)
-# =========================================================
-# Aquí registramos formalmente los discos duros virtuales que 
-# usarán los contenedores de PostgreSQL para no perder datos.
+# SECCIÓN GLOBAL DE VOLÚMENES PERSISTENTES
 # =========================================================
 volumes:
   postgres_reportes_data:
-    driver: local                        # Persistencia local para el módulo de incendios
+    driver: local
   postgres_usuarios_data:
-    driver: local                        # Persistencia local para el módulo de perfiles
+    driver: local
   postgres_auth_data:
-    driver: local                        # Persistencia local para el módulo de seguridad JWT
+    driver: local
   postgres_alertas_data:
-    driver: local                        # Persistencia local para el módulo de alertas 
+    driver: local
+  postgres_analitica_data:
+    driver: local
+  postgres_geografico_data:
+    driver: local
+
 # =========================================================
 # RED INTERNA DEL PROYECTO
 # =========================================================
 networks:
   valle-network:
-    driver: bridge                       # Crea el puente de red aislado para el ecosistema
+    driver: bridge

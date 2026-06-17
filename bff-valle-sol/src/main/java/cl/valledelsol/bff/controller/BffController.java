@@ -2,6 +2,7 @@ package cl.valledelsol.bff.controller;
 
 import cl.valledelsol.bff.dto.DashboardResponse;
 import cl.valledelsol.bff.dto.UsuarioResponse;
+import cl.valledelsol.bff.dto.UsuarioRequest;
 import cl.valledelsol.bff.dto.ReporteResponse;
 import cl.valledelsol.bff.service.BffService;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ import java.util.List;
  * evitando que el frontend llame directamente a los microservicios.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1/bff")
 public class BffController {
 
     private final BffService bffService;
@@ -38,6 +39,11 @@ public class BffController {
      * Lista usuarios desde ms-usuarios.
      * El BFF actúa como intermediario.
      */
+    @PostMapping("/usuarios")
+    public ResponseEntity<UsuarioResponse> registrarUsuario(@RequestBody UsuarioRequest request) {
+    // El servicio se encarga de pegarle a http://ms-usuarios:8082/api/v1/usuarios
+        return ResponseEntity.ok(bffService.registrarUsuario(request));
+    }
     @GetMapping("/usuarios")
     public ResponseEntity<List<UsuarioResponse>> listarUsuarios() {
         return ResponseEntity.ok(bffService.listarUsuarios());

@@ -15,7 +15,7 @@ import java.util.Map;
  * @RequestMapping define la ruta base del recurso.
  */
 @RestController
-@RequestMapping("/api/reportes")
+@RequestMapping("/api/v1/reportes")
 public class ReporteController {
 
     private final ReporteService reporteService;
