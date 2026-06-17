@@ -22,31 +22,54 @@ public class UsuarioService {
     /**
      * Registra un nuevo usuario aplicando las reglas de negocio del sistema.
      */
-    public Usuario registrarUsuario(Usuario usuario) {
-        // 1. Validar si el correo ya existe para evitar duplicados catastróficos
-        if (usuarioRepository.findByCorreo(usuario.getCorreo()).isPresent()) {
-            throw new RuntimeException("El correo electrónico ya se encuentra registrado.");
-        }
-
-        // 2. Inicializar los campos obligatorios del ciclo de vida de la entidad
-        usuario.setActivo(true); // Todo usuario nuevo ingresa habilitado
-        usuario.setFechaRegistro(LocalDateTime.now()); // Marca de tiempo del servidor
-
-        // 3. Forzar el formato del Rol para evitar inconsistencias de texto
-        if (usuario.getRol() != null) {
-            usuario.setRol(usuario.getRol().toUpperCase());
-        } else {
-            usuario.setRol("CIUDADANO"); // Rol por defecto por seguridad
-        }
-
-        // 4. Persistir en PostgreSQL
-        return usuarioRepository.save(usuario);
+    // Cambia tu método registrarUsuario en UsuarioService.java por este:
+public cl.valledelsol.ms_usuarios.dto.UsuarioResponse registrarUsuario(cl.valledelsol.ms_usuarios.dto.UsuarioRequest request) {
+    
+    // 1. Validar si el correo ya existe usando el dato del DTO
+    if (usuarioRepository.findByCorreo(request.getCorreo()).isPresent()) {
+        throw new RuntimeException("El correo electrónico ya se encuentra registrado.");
     }
+
+    // 2. Crear la entidad de base de datos y mapear los campos desde el Request
+    Usuario usuario = new Usuario();
+    usuario.setNombre(request.getNombre());
+    usuario.setCorreo(request.getCorreo());
+    usuario.setPassword(request.getPassword()); // 🔑 ¡Ahora sí se asigna la password!
+    
+    // 3. Inicializar campos del sistema
+    usuario.setActivo(true);
+    usuario.setFechaRegistro(LocalDateTime.now());
+
+    // 4. Forzar formato del Rol
+    if (request.getRol() != null) {
+        String rolFormateado = request.getRol().toUpperCase();
+        if ("FUNCIONARIO".equals(rolFormateado)) {
+            usuario.setRol("FUNCIONARIO_MUNICIPAL");
+        } else {
+            usuario.setRol(rolFormateado);
+        }
+    } else {
+        usuario.setRol("CIUDADANO");
+    }
+
+    // 5. Persistir en PostgreSQL
+    Usuario usuarioGuardado = usuarioRepository.save(usuario);
+
+    // 6. Retornar el Response DTO estructurado (Sin exponer la password al BFF/Front)
+    return new cl.valledelsol.ms_usuarios.dto.UsuarioResponse(
+        usuarioGuardado.getId(),
+        usuarioGuardado.getNombre(),
+        usuarioGuardado.getCorreo(),
+        usuarioGuardado.getRol(),
+        usuarioGuardado.getActivo(),
+        usuarioGuardado.getFechaRegistro()
+    );
+}
 
     /**
-     * Retorna la lista completa de usuarios en el sistema.
+     * Método adicional para listar todos los usuarios (puede ser útil para el Dashboard).
      */
-    public List<Usuario> listarTodos() {
+    public List<Usuario> listarUsuarios() {
         return usuarioRepository.findAll();
     }
-}
+}   

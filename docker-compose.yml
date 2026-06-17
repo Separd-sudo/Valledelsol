@@ -158,7 +158,10 @@ services:
   # MICROSERVICIO DE AUTENTICACIÓN (ms-auth)
   # =======================================================
   ms-auth:
-    image: separdx/ms-auth:develop
+    #image: separdx/ms-auth:develop
+    build:
+      context: ./ms-auth
+      dockerfile: Dockerfile
     container_name: ms-auth
     restart: unless-stopped
     depends_on:
@@ -198,7 +201,10 @@ services:
   # MICROSERVICIO DE REPORTES
   # =======================================================
   ms-reportes:
-    image: separdx/ms-reportes:develop
+    #image: separdx/ms-reportes:develop
+    build:
+      context: ./ms-reportes
+      dockerfile: Dockerfile
     container_name: ms-reportes
     restart: unless-stopped
     depends_on:
@@ -217,7 +223,10 @@ services:
   # MICROSERVICIO DE USUARIOS
   # =======================================================
   ms-usuarios:
-    image: separdx/ms-usuarios:develop
+    #image: separdx/ms-usuarios:develop
+    build: 
+      context: ./ms-usuarios
+      dockerfile: Dockerfile
     container_name: ms-usuarios
     restart: unless-stopped
     depends_on:
@@ -279,7 +288,10 @@ services:
   # BACKEND FOR FRONTEND (BFF)
   # =======================================================
   bff-valle-sol:
-    image: separdx/bff-valle-sol:develop
+    #image: separdx/bff-valle-sol:develop
+    build:
+      context: ./bff-valle-sol
+      dockerfile: Dockerfile
     container_name: bff-valle-sol
     restart: unless-stopped
     depends_on:

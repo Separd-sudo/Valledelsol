@@ -1,5 +1,7 @@
 package cl.valledelsol.bff.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 /**
  * DTO (Data Transfer Object) para capturar los datos del formulario 
  * de registro que envía el Frontend en React.
@@ -8,6 +10,7 @@ package cl.valledelsol.bff.dto;
 public class UsuarioRequest {
 
     private String nombre;
+    @JsonAlias({"email", "correo"})
     private String email;
     private String password;
     private String rol;

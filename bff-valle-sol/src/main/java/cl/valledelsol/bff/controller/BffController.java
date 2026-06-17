@@ -40,9 +40,9 @@ public class BffController {
      * El BFF actúa como intermediario.
      */
     @PostMapping("/usuarios")
-    public ResponseEntity<UsuarioResponse> registrarUsuario(@RequestBody UsuarioRequest request) {
-    // El servicio se encarga de pegarle a http://ms-usuarios:8082/api/v1/usuarios
-        return ResponseEntity.ok(bffService.registrarUsuario(request));
+    public ResponseEntity<?> registrarUsuario(@RequestBody UsuarioRequest request) {
+        Object respuesta = bffService.registrarUsuario(request);
+        return ResponseEntity.ok(respuesta);
     }
     @GetMapping("/usuarios")
     public ResponseEntity<List<UsuarioResponse>> listarUsuarios() {

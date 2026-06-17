@@ -66,15 +66,20 @@ public class BffService {
      * Procesa el registro de un nuevo usuario actuando como intermediario.
      * Transfiere los datos de React hacia el controlador de ms-usuarios en la red interna.
      */
-    public UsuarioResponse registrarUsuario(UsuarioRequest request) {
+    /**
+     * Procesa el registro de un nuevo usuario actuando como intermediario.
+     * Transfiere los datos de React hacia el controlador de ms-usuarios en la red interna.
+     * Modificado a Object para evitar quiebres de mapeo de DTOs en respuestas HTTP.
+     */
+    public Object registrarUsuario(UsuarioRequest request) {
         // Apunta al endpoint expuesto por el controlador nativo de ms-usuarios
         String urlEndpoint = msUsuariosUrl + "/api/v1/usuarios";
 
-        // Mapeamos el DTO del Front y lo enviamos síncronamente vía POST a ms-usuarios
-        ResponseEntity<UsuarioResponse> response = restTemplate.postForEntity(
+        // Usamos Object.class para capturar el JSON crudo del microservicio y enviarlo de vuelta directo al Front
+        ResponseEntity<Object> response = restTemplate.postForEntity(
                 urlEndpoint,
                 request,
-                UsuarioResponse.class
+                Object.class
         );
 
         return response.getBody();
