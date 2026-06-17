@@ -14,8 +14,8 @@ Frontend → BFF → API Gateway → Microservicios → Bases de datos
 
 - Frontend Valle del Sol
 - Patrón BFF (Backend-for-Frontend): Actúa como el único punto de contacto para la interfaz de React. Se  encarga de agregar datos de múltiples microservicios, formatear respuestas ligeras y mitigar la         sobre-comunicación por red desde el cliente.
-- Kong API Gateway (Modo DB): Centraliza el acceso perimetral. Enruta las peticiones de forma dinámica consultando un almacén transaccional dedicado en PostgreSQL, aislando las IPs de los contenedores de negocio.
-- Aislamiento Perimetral: Los microservicios de negocio (ms-usuarios y ms-reportes) no exponen puertos al internet público. Operan dentro de la red aislada valle-network y solo atienden peticiones autenticadas provenientes de Kong.
+- Kong API Gateway DB Less
+- Aislamiento Perimetral: Los microservicios de negocio (ms-usuarios, ms-reportes, ms-auth, ms-alertas, ms-geografico, ms-analitica) no exponen puertos al internet público. Operan dentro de la red aislada valle-network y solo atienden peticiones autenticadas provenientes de Kong.
 
 
 - 🛠️ Tecnologías y Patrones Aplicados
@@ -25,6 +25,7 @@ En cada microservicio se implementó una arquitectura limpia segregada en capas 
 - Service: Orquestador de lógica de negocios, reglas operativas y transformaciones lógicas (@Service).
 - DTO (Data Transfer Object): Estructuras que viajan por la red para evitar la exposición directa de Entidades de Base de Datos.
 - Repository (JPA): Abstracción de acceso a datos conectada a dialectos PostgreSQL nativos (@Repository).
+- Listener (Kafka):
 
 - Infraestructura Automatizada (Docker)
 - El archivo docker-compose.yml gestiona un despliegue de contenedores concurrentes:
@@ -56,7 +57,7 @@ Ejecutar desde la raíz para limpiar la caché de datos e inicializar la infraes
 
 - Verificación de Enrutamiento: Consumir mediante navegador o Postman el endpoint expuesto por la aduana: http://localhost:8000/api/usuarios. Debe retornar el payload JSON nativo con estado 200 OK.
 
-- Pruebas Unitarias: Navegar a la carpeta interna del BFF o de los microservicios y ejecutar el wrapper autónomo de Maven para validar las aserciones: ./mvnw clean test
+- Pruebas Unitarias
 
 - 🌿 Estrategia de Branching (GitFlow Simplificado)
 
