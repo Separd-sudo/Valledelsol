@@ -64,4 +64,3 @@ Ejecutar desde la raíz para limpiar la caché de datos e inicializar la infraes
 - main / master: Código certificado listo para despliegue productivo.
 - develop: Eje de integración continua donde se consolidan las funcionalidades técnicas estables del laboratorio.
 - Mensajes de confirmación bajo el estándar de Conventional Commits (feat:, fix:, infra:, test:).
-
