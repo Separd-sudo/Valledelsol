@@ -22,9 +22,12 @@ public class ReporteController {
     @PostMapping
     public ResponseEntity<?> crearReporte(@RequestBody ReporteRequest request) {
         try {
+            // Ejecuta el flujo seguro de persistencia core
             Reporte nuevoReporte = reporteService.crearReporte(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoReporte);
         } catch (Exception e) {
+            // Captura controlada del error evitando la caída del Socket de red
+            System.err.println("💥 Error controlado en controlador: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error interno al procesar el reporte: " + e.getMessage());
         }

@@ -18,7 +18,7 @@ export default function Home() {
   
   // --- ESTADOS DE LA PLATAFORMA ---
   const [vistaRegistro, setVistaRegistro] = useState(false);
-  const [credenciales, setCredenciales] = useState({ email: '', password: '' });
+  const [credenciales, setCredenciales] = useState({ correo: '', password: '' });
   const [metricas, setMetricas] = useState({ totalReportes: 0, totalUsuarios: 0, mensaje: 'Cargando...' });
   const [bannerNotificacion, setBannerNotificacion] = useState(null);
 
@@ -51,7 +51,7 @@ export default function Home() {
 
     // 🚀 Rescatamos los valores desde tu objeto de estado 'credenciales'
     const datosLogin = {
-      email: credenciales.email,       
+      correo: credenciales.correo,       
       password: credenciales.password  
     };
 
@@ -124,8 +124,8 @@ export default function Home() {
                 type="email" 
                 required 
                 style={styles.input}
-                value={credenciales.email}
-                onChange={(e) => setCredenciales({...credenciales, email: e.target.value})}
+                value={credenciales.correo}
+                onChange={(e) => setCredenciales({...credenciales, correo: e.target.value})}
               />
               
               <label style={styles.label}>Contraseña:</label>
