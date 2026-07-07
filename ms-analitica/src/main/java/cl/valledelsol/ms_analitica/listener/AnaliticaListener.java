@@ -13,7 +13,7 @@ public class AnaliticaListener {
     private AnaliticaService analiticaService;
 
     /**
-     * Consume del mismo tópico de alertas, demostrando el patrón Publish-Subscribe de Kafka.
+     * Consume del mismo tópico de incidentes, demostrando el patrón Publish-Subscribe de Kafka.
      */
     @KafkaListener(
         topics = "incidentes-incendios",
