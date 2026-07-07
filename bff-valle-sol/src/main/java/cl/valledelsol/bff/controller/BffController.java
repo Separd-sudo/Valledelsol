@@ -39,7 +39,7 @@ public class BffController {
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody Map<String, Object> loginBody) {
         try {
-            String urlMsAuth = "http://ms-auth:8080/api/v1/auth/login";
+            String urlMsAuth = "http://ms-auth:8083/api/v1/auth/login";
             ResponseEntity<Object> response = restTemplate.postForEntity(urlMsAuth, loginBody, Object.class);
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (org.springframework.web.client.HttpStatusCodeException e) {
@@ -52,7 +52,7 @@ public class BffController {
     @PostMapping("/reportes")
     public ResponseEntity<?> crearReporte(@RequestBody Map<String, Object> reporteBody) {
         try {
-            String urlMsReportes = "http://ms-reportes:8080/api/v1/reportes";
+            String urlMsReportes = "http://ms-reportes:8081/api/v1/reportes";
             ResponseEntity<Object> response = restTemplate.postForEntity(urlMsReportes, reporteBody, Object.class);
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (Exception e) {
@@ -63,7 +63,7 @@ public class BffController {
     @GetMapping("/reportes")
     public ResponseEntity<?> listarReportes() {
         try {
-            String urlMsReportes = "http://ms-reportes:8080/api/v1/reportes";
+            String urlMsReportes = "http://ms-reportes:8081/api/v1/reportes";
             ResponseEntity<Object[]> response = restTemplate.getForEntity(urlMsReportes, Object[].class);
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {

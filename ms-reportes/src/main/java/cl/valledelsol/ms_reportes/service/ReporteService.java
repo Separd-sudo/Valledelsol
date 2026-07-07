@@ -39,9 +39,10 @@ public class ReporteService {
 
         // 🔑 BYPASS DE INFRAESTRUCTURA: Enviamos al broker ignorando fallas de red para liberar a Postman
         try {
-            kafkaTemplate.send(TOPIC_INCENDIOS, reporteGuardado);
+        kafkaTemplate.send(TOPIC_INCENDIOS, reporteGuardado);
         } catch (Exception e) {
-            System.err.println("⚠️ Alerta Kafka (Bypass activado para defensa): " + e.getMessage());
+           System.err.println("🚨 [KAFKA] Reporte ID " + reporteGuardado.getId()
+        + " guardado en BD pero no publicado en Kafka. Causa: " + e.getMessage());
         }
 
         return reporteGuardado;

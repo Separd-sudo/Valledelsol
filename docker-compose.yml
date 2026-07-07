@@ -166,7 +166,7 @@ services:
     depends_on:
       - postgres-usuarios # 🔑 CORREGIDO: Ahora espera a la base de datos real de usuarios
     ports:
-      - "8083:8080" # 🔑 CORREGIDO: Mapea el puerto externo 8083 al interno 8080 de tu log de Tomcat
+      - "8083:8083" # 🔑 CORREGIDO: Mapea el puerto externo 8083 al interno 8083 de tu log de Tomcat
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-usuarios:5432/${DB_NAME_USUARIOS} # 🔑 REPARADO: Apunta a usuarios_db de forma nativa
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
