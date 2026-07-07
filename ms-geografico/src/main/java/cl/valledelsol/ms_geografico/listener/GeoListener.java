@@ -16,7 +16,7 @@ public class GeoListener {
      * Consume el mismo canal "alertas-incendios", completando el ecosistema de 3 oyentes simultáneos.
      */
     @KafkaListener(
-        topics = "alertas-incendios",
+        topics = "incidentes-incendios",
         groupId = "valle-sol-geografico-group",
         properties = {"spring.json.value.default.type=cl.valledelsol.ms_geografico.dto.GeoEventDTO"}
     )
