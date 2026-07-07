@@ -202,7 +202,7 @@ export default function Home() {
           </div>
         )}
 
-        {rolActivo === 'FUNCIONARIO' && (
+        {(rolActivo === 'FUNCIONARIO' || rolActivo === 'FUNCIONARIO_MUNICIPAL') && (
           <div>
             <h2 style={styles.tituloSeccion}>🏢 Panel de Administración Municipal (Mando Global)</h2>
             <PanelFuncionario token={token} />
@@ -214,7 +214,7 @@ export default function Home() {
   );
 }
 
-// --- ESTILOS NATIVOS CSS-IN-JS PARA AGILIZAR LA ENTREGA ---
+// --- ESTILOS NATIVOS CSS-IN-JS ---
 const styles = {
   loginContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#F1F5F9' },
   loginCard: { background: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', width: '100%', maxWidth: '450px' },
