@@ -15,7 +15,7 @@ public class UsuarioResponse {
 
     public UsuarioResponse(Long id, String nombre, String correo, String rol, Boolean activo) {
         this.id = id;
-        this.nombre = nombre;
+        this.nombre = nombre;   
         this.correo = correo;
         this.rol = rol;
         this.activo = activo;

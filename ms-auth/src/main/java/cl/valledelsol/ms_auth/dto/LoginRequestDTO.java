@@ -6,44 +6,30 @@ package cl.valledelsol.ms_auth.dto;
  */
 public class LoginRequestDTO {
     
-    // Atributos privados para restringir el acceso directo desde el exterior
-    private String email;
+    private String correo; // 🔑 CORREGIDO: De email a correo
     private String password;
 
-    // =========================================================
-    // CONSTRUCTORES
-    // =========================================================
-
-    // Constructor vacío obligatorio que utiliza Spring (Jackson) para deserializar el JSON
+    // Constructor vacío obligatorio para Jackson
     public LoginRequestDTO() {
     }
 
-    // Constructor con parámetros (Útil para pruebas unitarias con Mockito)
-    public LoginRequestDTO(String email, String password) {
-        this.email = email;
+    public LoginRequestDTO(String correo, String password) {
+        this.correo = correo;
         this.password = password;
     }
 
-    // =========================================================
-    // GETTERS Y SETTERS (Métodos de Acceso)
-    // =========================================================
-
-    // Obtiene el email del usuario
-    public String getEmail() {
-        return email;
+    public String getCorreo() {
+        return correo;
     }
 
-    // Define o modifica el email del usuario
-    public void setEmail(String email) {
-        this.email = email;
+    public void setCorreo(String correo) {
+        this.correo = correo;
     }
 
-    // Obtiene la contraseña plana
     public String getPassword() {
         return password;
     }
 
-    // Define o modifica la contraseña
     public void setPassword(String password) {
         this.password = password;
     }

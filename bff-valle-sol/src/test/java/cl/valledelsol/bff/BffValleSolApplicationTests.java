@@ -1,4 +1,4 @@
-package cl.valledelsol.bff.service; // Asegúrate de que coincida con su paquete real
+package cl.valledelsol.bff; // Asegúrate de que coincida con su paquete real
 
 import cl.valledelsol.bff.BffValleSolApplication; // Importa tu clase principal
 import org.junit.jupiter.api.Test;

@@ -8,6 +8,6 @@ import java.util.Optional;
 @Repository
 public interface UsuarioAuthRepository extends JpaRepository<UsuarioAuth, Long> {
     
-    // Este es el Query Method clave que tu AuthService necesita para buscar al usuario por correo
-    Optional<UsuarioAuth> findByEmail(String email);
+    // 🔑 CORREGIDO: Ahora busca por columna 'correo' de forma nativa
+    Optional<UsuarioAuth> findByCorreo(String correo);
 }

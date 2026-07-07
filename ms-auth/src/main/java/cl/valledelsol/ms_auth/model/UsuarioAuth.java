@@ -7,59 +7,36 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 
-/**
- * Clase de Arquitectura de Datos (Clase de Persistencia).
- * Representa la tabla "usuarios_auth" dentro de la base de datos "auth_db".
- * Al usar @Entity, Spring Boot lee esta estructura y genera la tabla en PostgreSQL de forma automática.
- */
 @Entity
-@Table(name = "usuarios_auth")
+@Table(name = "usuarios") // 🔑 CORREGIDO: Apunta a tu tabla 'usuarios' donde están los registros
 public class UsuarioAuth {
-
-    // =========================================================================
-    // ATRIBUTOS (Campos de la Tabla)
-    // =========================================================================
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Guardamos el correo municipal único para evitar duplicados en el login
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
+    @Column(name = "correo", nullable = false, unique = true, length = 100) // 🔑 CORREGIDO
+    private String correo;
 
-    // IMPORTANTE: La contraseña en producción se guarda encriptada (BCrypt), no en texto plano
     @Column(nullable = false, length = 255)
     private String password;
 
-    // Guardamos el rol para la autorización perimetral (ej. "OPERADOR", "ADMINISTRADOR")
     @Column(nullable = false, length = 30)
     private String rol;
+    
+    @Column(length = 100)
+    private String nombre; // 🔑 Agregado para poder extraerlo y mandarlo al Front
 
-    // =========================================================================
-    // CONSTRUCTORES (Buenas Prácticas de Encapsulamiento)
-    // =========================================================================
-
-    /**
-     * Constructor Vacío obligatorio por la especificación de JPA / Hibernate.
-     * Si no se incluye, Spring Boot lanzará una excepción al intentar mapear las filas de la BD.
-     */
     public UsuarioAuth() {
     }
 
-    /**
-     * Constructor Completo para inicializar instancias de forma explícita en tus servicios.
-     */
-    public UsuarioAuth(Long id, String email, String password, String rol) {
+    public UsuarioAuth(Long id, String correo, String password, String rol, String nombre) {
         this.id = id;
-        this.email = email;
+        this.correo = correo;
         this.password = password;
         this.rol = rol;
+        this.nombre = nombre;
     }
-
-    // =========================================================================
-    // GETTERS Y SETTERS EXPLÍCITOS (Control de Acceso Puro)
-    // =========================================================================
 
     public Long getId() {
         return id;
@@ -69,12 +46,12 @@ public class UsuarioAuth {
         this.id = id;
     }
 
-    public String getEmail() {
-        return email;
+    public String getCorreo() {
+        return correo;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setCorreo(String correo) {
+        this.correo = correo;
     }
 
     public String getPassword() {
@@ -91,5 +68,13 @@ public class UsuarioAuth {
 
     public void setRol(String rol) {
         this.rol = rol;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 }

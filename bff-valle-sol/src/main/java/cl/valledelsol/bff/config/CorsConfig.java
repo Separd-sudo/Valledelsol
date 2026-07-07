@@ -16,19 +16,17 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         
-        // Permitimos credenciales y tokens haca el Front
         config.setAllowCredentials(true);
         
-        // Orígenes explícitos autorizados (localhost e IP de Vite)
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://127.0.0.1:5173"));
+        // 🔑 CORRECCIÓN: Agregamos el puerto 3000 de Next.js que está usando tu Front
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000", 
+            "http://127.0.0.1:3000"
+        ));
         
-        // Permitimos cualquier cabecera (Authorization, Content-Type, etc.)
         config.setAllowedHeaders(Arrays.asList("*"));
-        
-        // Métodos HTTP explícitos
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         
-        // Aplicar a todos los endpoints del BFF
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }

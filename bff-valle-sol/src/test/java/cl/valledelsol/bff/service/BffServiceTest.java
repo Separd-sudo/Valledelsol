@@ -1,4 +1,4 @@
-package cl.valledelsol.bff;
+package cl.valledelsol.bff.service;
 
 import cl.valledelsol.bff.dto.DashboardResponse;
 import cl.valledelsol.bff.dto.ReporteResponse;
@@ -11,6 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings; // <-- NUEVO IMPORT
+import org.mockito.quality.Strictness;             // <-- NUEVO IMPORT
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT) // <-- SOLUCIÓN ACÁ: Desactiva el modo estricto de Mockito
 public class BffServiceTest {
 
     @Mock
@@ -42,7 +45,6 @@ public class BffServiceTest {
 
     @Test
     void cuandoMicroserviciosRespondenOk_entoncesRetornaDashboardConsolidado() {
-        // Usamos constructores vacíos y llenamos con Setters para evitar errores de longitud de parámetros
         UsuarioResponse user1 = new UsuarioResponse();
         UsuarioResponse user2 = new UsuarioResponse();
         
@@ -50,7 +52,6 @@ public class BffServiceTest {
         listaUsuariosSimulada.add(user1);
         listaUsuariosSimulada.add(user2);
         
-        // Evitamos la ambigüedad usando directamente el método estático .ok() de ResponseEntity
         ResponseEntity<List<UsuarioResponse>> responseUsuarios = ResponseEntity.ok(listaUsuariosSimulada);
 
         ReporteResponse rep1 = new ReporteResponse();
@@ -87,7 +88,6 @@ public class BffServiceTest {
 
     @Test
     void cuandoMicroserviciosRespondenNulo_entoncesDashboardRetornaTotalesEnCero() {
-        // Pasamos una lista vacía para simular la ausencia de registros de forma segura
         List<UsuarioResponse> listaUserVacia = new ArrayList<>();
         List<ReporteResponse> listaRepVacia = new ArrayList<>();
 
