@@ -301,14 +301,12 @@ services:
     ports:
       - "${PORT_BFF}:8080"
     environment:
-      - MS_USUARIOS_URL=${MS_USUARIOS_URL}
-      - MS_REPORTES_URL=${MS_REPORTES_URL}
-      - MS_ANALITICA_URL=http://kong-gateway:8000
-      - MS_GEOGRAFICO_URL=http://kong-gateway:8000
-      - MS_ANALITICA_URL=${MS_ANALITICA_URL}
-      - MS_GEOGRAFICO_URL=${MS_GEOGRAFICO_URL}
-      - MS_ALERTAS_URL=${MS_ALERTAS_URL}
-      - MS_AUTH_URL=${MS_AUTH_URL}
+      - MS_USUARIOS_URL=http://ms-usuarios:8082
+      - MS_REPORTES_URL=http://ms-reportes:8081
+      - MS_AUTH_URL=http://ms-auth:8083
+      - MS_ALERTAS_URL=http://ms-alertas:8084
+      - MS_ANALITICA_URL=http://ms-analitica:8085
+      - MS_GEOGRAFICO_URL=http://ms-geografico:8086
       - JWT_SECRET=${JWT_SECRET:-NUj5SYvv0DYb895RqG3G1mpkB+oH0Sr19fNWm0E6Jos=}
     networks:
       - valle-network
