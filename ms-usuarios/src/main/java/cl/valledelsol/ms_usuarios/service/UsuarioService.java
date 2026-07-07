@@ -2,8 +2,10 @@ package cl.valledelsol.ms_usuarios.service;
 
 import cl.valledelsol.ms_usuarios.model.Usuario;
 import cl.valledelsol.ms_usuarios.repository.UsuarioRepository;
+import cl.valledelsol.ms_usuarios.config.SecurityConfig;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 
 /**
@@ -13,10 +15,12 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Inyección por constructor nativo
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -34,7 +38,7 @@ public cl.valledelsol.ms_usuarios.dto.UsuarioResponse registrarUsuario(cl.valled
     Usuario usuario = new Usuario();
     usuario.setNombre(request.getNombre());
     usuario.setCorreo(request.getCorreo());
-    usuario.setPassword(request.getPassword()); // 🔑 ¡Ahora sí se asigna la password!
+    usuario.setPassword(passwordEncoder.encode(request.getPassword())); // 🔑 ¡Ahora sí se asigna la password!
     
     // 3. Inicializar campos del sistema
     usuario.setActivo(true);

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +26,11 @@ class AuthServiceTest {
 
     @Mock
     private UsuarioAuthRepository usuarioAuthRepository;
+
+    // Necesario porque AuthService ahora depende de PasswordEncoder para
+    // verificar el login. Sin este mock, el test fallaria con NPE.
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AuthService authService;
@@ -46,6 +53,9 @@ class AuthServiceTest {
         LoginRequestDTO request = new LoginRequestDTO("test@valledelsol.cl", "Clave123!");
 
         // 🔑 ALINEADO: findByCorreo() y getCorreo()
+        // Simula que el password recibido SI coincide con el hash guardado,
+        // sin ejecutar BCrypt real (no es lo que este test busca validar).
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
 
         TokenResponseDTO response = authService.autenticar(request);
@@ -66,6 +76,7 @@ class AuthServiceTest {
         usuarioBase.setNombre("Trapesio");
         LoginRequestDTO request = new LoginRequestDTO("test@valledelsol.cl", "Clave123!");
 
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
 
         TokenResponseDTO response = authService.autenticar(request);
@@ -83,6 +94,7 @@ class AuthServiceTest {
         usuarioBase.setNombre("Roro");
         LoginRequestDTO request = new LoginRequestDTO("test@valledelsol.cl", "Clave123!");
 
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);   
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
 
         TokenResponseDTO response = authService.autenticar(request);
@@ -96,6 +108,9 @@ class AuthServiceTest {
     @DisplayName("Debería lanzar excepción cuando el usuario no existe")
     void autenticarUsuarioNoExiste() {
         LoginRequestDTO request = new LoginRequestDTO("inexistente@valledelsol.cl", "Password123");
+
+        // Simula que el password NO coincide, para probar el camino de rechazo.
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -109,6 +124,8 @@ class AuthServiceTest {
     @DisplayName("Debería lanzar excepción cuando la contraseña es incorrecta")
     void autenticarContrasenaIncorrecta() {
         LoginRequestDTO request = new LoginRequestDTO("test@valledelsol.cl", "ClaveErronea");
+
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
