@@ -5,7 +5,9 @@ import cl.valledelsol.ms_reportes.model.Reporte;
 import cl.valledelsol.ms_reportes.repository.ReporteRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
+import cl.valledelsol.ms_reportes.dto.ActualizarReporteRequest;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,6 +17,8 @@ public class ReporteService {
     private final ReporteRepository reporteRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private static final String TOPIC_INCENDIOS = "incidentes-incendios";
+    private static final Set<String> ESTADOS_VALIDOS = Set.of("PENDIENTE", "EN_REVISION", "ATENDIDO", "CERRADO");
+
 
     public ReporteService(ReporteRepository reporteRepository, KafkaTemplate<String, Object> kafkaTemplate) {
         this.reporteRepository = reporteRepository;
@@ -51,4 +55,32 @@ public class ReporteService {
     public List<Reporte> listarTodos() {
         return reporteRepository.findAll();
     }
+
+
+    public Reporte actualizarReporte(Long id, ActualizarReporteRequest request) {
+    Reporte reporte = reporteRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("No existe un reporte con id " + id));
+
+    if (request.getEstado() != null && !request.getEstado().isBlank()) {
+        String estadoNormalizado = request.getEstado().toUpperCase();
+        if (!ESTADOS_VALIDOS.contains(estadoNormalizado)) {
+            throw new IllegalArgumentException("Estado invalido: '" + request.getEstado() + "'. Estados validos: " + ESTADOS_VALIDOS);
+        }
+        reporte.setEstado(estadoNormalizado);
+    }
+
+    if (request.getDescripcion() != null && !request.getDescripcion().isBlank()) {
+        reporte.setDescripcion(request.getDescripcion());
+    }
+
+    Reporte reporteActualizado = reporteRepository.save(reporte);
+
+    try {
+        kafkaTemplate.send(TOPIC_INCENDIOS, reporteActualizado);
+    } catch (Exception e) {
+        System.err.println("🚨 [KAFKA] Reporte ID " + reporteActualizado.getId() + " actualizado en BD pero no publicado en Kafka. Causa: " + e.getMessage());
+    }
+
+    return reporteActualizado;
+}
 }
