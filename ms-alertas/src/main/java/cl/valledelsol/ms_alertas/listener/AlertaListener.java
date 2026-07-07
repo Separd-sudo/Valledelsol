@@ -17,7 +17,7 @@ public class AlertaListener {
      * Spring se encarga de parsear el JSON entrante directo al DTO.
      */
     @KafkaListener(
-        topics = "alertas-incendios", 
+        topics = "incidentes-incendios", 
         groupId = "valle-sol-alertas-group",
         properties = {"spring.json.value.default.type=cl.valledelsol.ms_alertas.dto.AlertaIncendioDTO"}
     )
