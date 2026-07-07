@@ -9,8 +9,8 @@ public class AlertaService {
     public void enviarNotificacionesMunicipales(AlertaIncendioDTO alerta) {
         System.out.println("=====================================================");
         System.out.println("🚨 [MS-ALERTAS ➔ SERVICIO] PROCESANDO LOGÍSTICA DE EMERGENCIA");
-        System.out.println("📌 Incendio Detectado en Sector: " + alerta.getSector().toUpperCase());
-        System.out.println("🔥 Nivel de Riesgo: " + alerta.getGravedad());
+        System.out.println("📌 Incendio Detectado en Sector: " + alerta.getUbicacion().toUpperCase());
+        System.out.println("🔥 Nivel de Riesgo: " + alerta.getNivelRiesgo());
         System.out.println("💬 " + alerta.getDescripcion());
         System.out.println("-----------------------------------------------------");
         System.out.println("⚡ [ACCIÓN] Enviando SMS masivos de evacuación perimetral...");
