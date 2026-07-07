@@ -106,8 +106,18 @@ public class BffController {
     public ResponseEntity<?> crearReporte(@RequestBody Map<String, Object> reporteBody, HttpServletRequest request) {
         try {
             String urlMsReportes = msReportesUrl + "/api/v1/reportes";
-            ResponseEntity<Object> response = restTemplate.postForEntity(urlMsReportes, reporteBody, Object.class);
+            // 🔑 FIX: Reenviar el header Authorization al microservicio de reportes
+            String authHeader = request.getHeader("Authorization");
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            if (authHeader != null) {
+                headers.set("Authorization", authHeader);
+            }
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(reporteBody, headers);
+            ResponseEntity<Object> response = restTemplate.exchange(urlMsReportes, HttpMethod.POST, entity, Object.class);
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error en pasarela de creación de reportes BFF: " + e.getMessage());
         }
