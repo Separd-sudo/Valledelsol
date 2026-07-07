@@ -28,18 +28,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     public static final String ATTR_ID_USUARIO = "idUsuario";
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        String method = request.getMethod();
+protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+    String method = request.getMethod();
 
-        if (method.equals("OPTIONS")) {
-            return true;
-        }
+    if (method.equals("OPTIONS")) {
+        return true;
+    }
 
-        boolean esLogin = path.equals("/api/v1/bff/auth/login") && method.equals("POST");
-        boolean esRegistroUsuario = path.equals("/api/v1/bff/usuarios") && method.equals("POST");
+    // Usamos endsWith para asegurar que capture la ruta sin problemas de prefijos
+    boolean esLogin = path.endsWith("/api/v1/bff/auth/login") && method.equals("POST");
+    boolean esRegistroUsuario = path.endsWith("/api/v1/bff/usuarios") && method.equals("POST");
 
-        return esLogin || esRegistroUsuario;
+    return esLogin || esRegistroUsuario;
     }
 
     @Override
@@ -73,5 +74,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(objectMapper.writeValueAsString(Map.of("error", mensaje)));
-    }
+    }   
 }
