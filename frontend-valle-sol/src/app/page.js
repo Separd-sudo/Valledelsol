@@ -163,19 +163,11 @@ export default function Home() {
         </button>
       </header>
 
-      {/* MÉTRICAS CONSOLIDADAS DEL DASHBOARD (Agregación del BFF) */}
+      {/* MÉTRICAS — solo alertas activas */}
       <section style={styles.metricsGrid}>
-        <div style={styles.metricCard}>
-          <h3>🔥 Alertas Activas</h3>
+        <div style={{...styles.metricCard, gridColumn: 'span 4'}}>
+          <h3>🔥 Alertas Activas en el Sistema</h3>
           <p style={styles.metricNumber}>{metricas.totalReportes}</p>
-        </div>
-        <div style={styles.metricCard}>
-          <h3>👥 Usuarios Registrados</h3>
-          <p style={styles.metricNumber}>{metricas.totalUsuarios}</p>
-        </div>
-        <div style={{...styles.metricCard, gridColumn: 'span 2', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE' }}>
-          <h3 style={{ color: '#1E40AF' }}>📢 Estado de Orquestación Síncrona (BFF)</h3>
-          <p style={{ color: '#1E3A8A', fontSize: '14px', marginTop: '10px' }}>{metricas.mensaje}</p>
         </div>
       </section>
 

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { BFF_USUARIOS_URL, BFF_ANALITICA_URL, BFF_GEOGRAFIA_URL, BFF_ALERTAS_URL } from '../config';
+import { BFF_USUARIOS_URL, BFF_REPORTES_URL, BFF_ANALITICA_URL, BFF_GEOGRAFIA_URL, BFF_ALERTAS_URL } from '../config';
 
 const TABS = [
   { id: 'usuarios', etiqueta: '👥 Usuarios' },
-  { id: 'historial', etiqueta: '📊 Historial' },
+  { id: 'reportes', etiqueta: '📋 Reportes' },
+  { id: 'historial', etiqueta: '📊 Analítica' },
   { id: 'mapa', etiqueta: '🗺️ Mapa' },
   { id: 'notificaciones', etiqueta: '🔔 Notificaciones' },
 ];
@@ -25,6 +26,7 @@ function PanelFuncionario({ token }) {
       </div>
       <div style={styles.contenido}>
         {tabActiva === 'usuarios' && <TabUsuarios token={token} />}
+        {tabActiva === 'reportes' && <TabReportes token={token} />}
         {tabActiva === 'historial' && <TabHistorial token={token} />}
         {tabActiva === 'mapa' && <TabMapa token={token} />}
         {tabActiva === 'notificaciones' && <TabNotificaciones token={token} />}
@@ -94,6 +96,99 @@ function TabUsuarios({ token }) {
   );
 }
 
+// -------------------------------------------------------
+// TAB: REPORTES — Muestra los reportes directos desde ms-reportes
+// -------------------------------------------------------
+function TabReportes({ token }) {
+  const [reportes, setReportes] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+  const [guardandoId, setGuardandoId] = useState(null);
+
+  const cargarReportes = () => {
+    setCargando(true);
+    setError(null);
+    axios.get(BFF_REPORTES_URL, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then((res) => setReportes(res.data || []))
+      .catch((err) => {
+        console.error(err);
+        setError('No se pudieron cargar los reportes.');
+      })
+      .finally(() => setCargando(false));
+  };
+
+  useEffect(() => { cargarReportes(); }, [token]);
+
+  const actualizarEstado = (id, nuevoEstado) => {
+    setGuardandoId(id);
+    axios.put(`${BFF_REPORTES_URL}/${id}`, { estado: nuevoEstado }, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(() => cargarReportes())
+      .catch((err) => alert(err.response?.data?.error || 'Error al actualizar el reporte.'))
+      .finally(() => setGuardandoId(null));
+  };
+
+  const badgeEstado = (estado) => {
+    const colores = { PENDIENTE: '#F59E0B', EN_REVISION: '#3B82F6', ATENDIDO: '#10B981', CERRADO: '#6B7280' };
+    return <span style={{ background: colores[estado] || '#94A3B8', color: 'white', padding: '2px 8px', borderRadius: '999px', fontSize: '12px', fontWeight: 'bold' }}>{estado}</span>;
+  };
+
+  const badgeRiesgo = (nivel) => {
+    const colores = { BAJO: '#10B981', MEDIO: '#F59E0B', ALTO: '#EF4444', CRITICO: '#7C3AED' };
+    return <span style={{ background: colores[nivel] || '#94A3B8', color: 'white', padding: '2px 8px', borderRadius: '999px', fontSize: '12px', fontWeight: 'bold' }}>{nivel}</span>;
+  };
+
+  if (cargando) return <p style={{ color: '#64748B', fontStyle: 'italic' }}>⏳ Cargando reportes...</p>;
+  if (error) return <p style={{ color: '#EF4444' }}>❌ {error} <button onClick={cargarReportes} style={{ marginLeft: '8px', cursor: 'pointer' }}>Reintentar</button></p>;
+  if (reportes.length === 0) return <p style={styles.vacio}>No hay reportes registrados todavía.</p>;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <span style={{ fontSize: '13px', color: '#64748B' }}>{reportes.length} reporte(s) encontrados</span>
+        <button onClick={cargarReportes} style={{ background: '#1E293B', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>🔄 Actualizar</button>
+      </div>
+      <table style={styles.tabla}>
+        <thead><tr>
+          <th style={styles.th}>ID</th>
+          <th style={styles.th}>Tipo</th>
+          <th style={styles.th}>Ubicación</th>
+          <th style={styles.th}>Riesgo</th>
+          <th style={styles.th}>Estado</th>
+          <th style={styles.th}>Fecha</th>
+          <th style={styles.th}>Cambiar Estado</th>
+        </tr></thead>
+        <tbody>
+          {reportes.map((r) => (
+            <tr key={r.id}>
+              <td style={styles.td}>#{r.id}</td>
+              <td style={styles.td}>{r.titulo}</td>
+              <td style={styles.td}>{r.ubicacion}</td>
+              <td style={styles.td}>{badgeRiesgo(r.nivelRiesgo)}</td>
+              <td style={styles.td}>{badgeEstado(r.estado)}</td>
+              <td style={styles.td}>{r.fechaCreacion ? new Date(r.fechaCreacion).toLocaleString('es-CL') : '-'}</td>
+              <td style={styles.td}>
+                <select
+                  value={r.estado}
+                  disabled={guardandoId === r.id}
+                  onChange={(e) => actualizarEstado(r.id, e.target.value)}
+                  style={styles.selectChico}>
+                  <option value="PENDIENTE">PENDIENTE</option>
+                  <option value="EN_REVISION">EN_REVISION</option>
+                  <option value="ATENDIDO">ATENDIDO</option>
+                  <option value="CERRADO">CERRADO</option>
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// -------------------------------------------------------
+// TAB: ANALÍTICA — Historial desde ms-analitica (eventos Kafka)
+// -------------------------------------------------------
 function TabHistorial({ token }) {
   const [historial, setHistorial] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -105,8 +200,8 @@ function TabHistorial({ token }) {
       .finally(() => setCargando(false));
   }, [token]);
 
-  if (cargando) return <p>Cargando historial...</p>;
-  if (historial.length === 0) return <p style={styles.vacio}>No hay registros todavía.</p>;
+  if (cargando) return <p>Cargando analítica...</p>;
+  if (historial.length === 0) return <p style={styles.vacio}>No hay registros de analítica todavía.</p>;
 
   return (
     <table style={styles.tabla}>
