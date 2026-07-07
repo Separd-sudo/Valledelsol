@@ -4,6 +4,7 @@ import cl.valledelsol.ms_auth.dto.LoginRequestDTO;
 import cl.valledelsol.ms_auth.dto.TokenResponseDTO;
 import cl.valledelsol.ms_auth.model.UsuarioAuth;
 import cl.valledelsol.ms_auth.repository.UsuarioAuthRepository;
+import cl.valledelsol.ms_auth.security.JwtService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -31,6 +33,9 @@ class AuthServiceTest {
     // verificar el login. Sin este mock, el test fallaria con NPE.
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private AuthService authService;
@@ -57,6 +62,8 @@ class AuthServiceTest {
         // sin ejecutar BCrypt real (no es lo que este test busca validar).
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
+        when(jwtService.generarToken(anyLong(), anyString(), anyString(), anyString())).thenReturn("jwt-simulado");
+        when(jwtService.getExpirationMs()).thenReturn(3600000L);
 
         TokenResponseDTO response = authService.autenticar(request);
 
@@ -78,7 +85,8 @@ class AuthServiceTest {
 
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
-
+        when(jwtService.generarToken(anyLong(), anyString(), anyString(), anyString())).thenReturn("jwt-simulado");
+        when(jwtService.getExpirationMs()).thenReturn(3600000L);
         TokenResponseDTO response = authService.autenticar(request);
 
         assertNotNull(response);
@@ -96,12 +104,14 @@ class AuthServiceTest {
 
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);   
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
+        when(jwtService.generarToken(anyLong(), anyString(), anyString(), anyString())).thenReturn("jwt-simulado");
+        when(jwtService.getExpirationMs()).thenReturn(3600000L);
 
         TokenResponseDTO response = authService.autenticar(request);
 
         assertNotNull(response);
         assertEquals("FUNCIONARIO", response.getRol());
-        assertTrue(response.getTokenJwt().contains("JWT_SECRET_ROOT_FUNCIONARIO_MUNICIPAL_10"));
+        assertEquals("jwt-simulado", response.getTokenJwt());
     }
 
     @Test

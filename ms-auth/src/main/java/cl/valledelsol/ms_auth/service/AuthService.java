@@ -7,6 +7,7 @@ import cl.valledelsol.ms_auth.repository.UsuarioAuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+import cl.valledelsol.ms_auth.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 
@@ -19,6 +20,9 @@ public class AuthService {
     // guardado por ms-usuarios (ambos comparten la misma tabla "usuarios").
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
 
     public TokenResponseDTO autenticar(LoginRequestDTO request) {
         
@@ -44,32 +48,22 @@ public class AuthService {
         String rolUsuario = usuario.getRol().toUpperCase();
         String tokenSimulado = "";
         
-        switch (rolUsuario) {
-            case "CIUDADANO":
-                tokenSimulado = "JWT_SECRET_CIUDADANO_VALLE_" + usuario.getId();
-                break;
-                
-            case "BRIGADISTA":
-                tokenSimulado = "JWT_SECRET_BRIGADISTA_TERRENO_" + usuario.getId();
-                break;
-                
-            case "FUNCIONARIO": // 🔑 ALINEADO: Coincide exactamente con tu registro SQL
-                tokenSimulado = "JWT_SECRET_ROOT_FUNCIONARIO_MUNICIPAL_" + usuario.getId();
-                break;
-                
-            default:
-                throw new RuntimeException("Error del Sistema: El rol '" + rolUsuario + "' no corresponde a las políticas.");
-        }
+         if (!rolUsuario.equals("CIUDADANO") && !rolUsuario.equals("BRIGADISTA")
+                 && !rolUsuario.equals("FUNCIONARIO") && !rolUsuario.equals("FUNCIONARIO_MUNICIPAL")) {
+             throw new RuntimeException("Error del Sistema: El rol '" + rolUsuario + "' no corresponde a las políticas.");
+         }   
+        String token = jwtService.generarToken(usuario.getId(), usuario.getCorreo(), rolUsuario, usuario.getNombre());
+
         
         // 5. Construimos el TokenResponseDTO con todos los metadatos exigidos por el Front
         TokenResponseDTO response = new TokenResponseDTO();
-        response.setTokenJwt(tokenSimulado);
+        response.setTokenJwt(token);
         response.setRol(rolUsuario);
         
         // Salvavidas por si el nombre viene null en la tabla
         response.setNombre(usuario.getNombre() != null ? usuario.getNombre() : "Usuario Valle del Sol");
         response.setTokenType("Bearer");
-        response.setExpiresIn(3600L);
+        response.setExpiresIn(jwtService.getExpirationMs() / 1000);
         
         return response;
     }
