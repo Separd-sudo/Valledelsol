@@ -7,12 +7,18 @@ import cl.valledelsol.ms_auth.repository.UsuarioAuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 
 @Service
 public class AuthService {
 
     @Autowired
     private UsuarioAuthRepository usuarioAuthRepository;
+    // Verifica el password recibido en el login contra el hash BCrypt
+    // guardado por ms-usuarios (ambos comparten la misma tabla "usuarios").
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public TokenResponseDTO autenticar(LoginRequestDTO request) {
         
@@ -27,7 +33,10 @@ public class AuthService {
         UsuarioAuth usuario = usuarioOptional.get();
         
         // 3. Verificación de contraseña plana para desarrollo local
-        if (!usuario.getPassword().equals(request.getPassword())) {
+        // matches() aplica el mismo algoritmo BCrypt al password recibido y
+        // compara el resultado contra el hash guardado, SIN necesitar
+        // desencriptar nada (BCrypt no es reversible por diseño).
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
             throw new RuntimeException("Acceso Denegado: Contraseña incorrecta.");
         }
         
