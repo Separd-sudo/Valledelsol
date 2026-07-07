@@ -5,6 +5,29 @@
 _format_version: "3.0"
 _transform: true
 
+plugins:
+    - name: cors
+      config:
+        origins:
+          - http://localhost:3000  # Origen de tu servidor local de Next.js
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        headers:
+        - Accept
+        - Accept-Version
+        - Content-Length
+        - Content-Type
+        - Authorization
+        exposed_headers:
+                - Authorization
+        credentials: true
+        max_age: 3600
+        #preflight_terminate: true  # 🔨 CLAVE: Obliga a Kong a responder exitosamente los OPTIONS aquí mismo sin pasárselos a Java
+
 services:
   # -------------------------------------------------------
   # 1. MICROSERVICIO DE USUARIOS
@@ -83,24 +106,3 @@ services:
           - /api/v1/bff             # URL pública versionada
         strip_path: false                # Mantiene la ruta completa hacia Java
         # Inyectamos el plugin aquí para que la ruta resuelva el Preflight (OPTIONS)
-        plugins:
-          - name: cors
-            config:
-              origins:
-                - http://localhost:3000  # Origen de tu servidor local de Next.js
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Accept-Version
-                - Content-Length
-                - Content-Type
-                - Authorization
-              exposed_headers:
-                - Authorization
-              credentials: true
-              max_age: 3600

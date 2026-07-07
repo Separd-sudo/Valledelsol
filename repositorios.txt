@@ -1,23 +1,27 @@
 ======================================================================
-SISTEMA VALLE DEL SOL - ENLACES DE REPOSITORIOS Y COMPONENTES
-Evaluación Parcial N°2 - Desarrollo Fullstack III (DSY1106)
+DUOC UC - INGENIERÍA EN INFORMÁTICA / ENTORNO DESARROLLO FULLSTACK III
+SISTEMA DE GESTIÓN "VALLE DEL SOL" - ENLACES DE REPOSITORIOS GITHUB
 ======================================================================
 
-[1] ENLACE AL REPOSITORIO PRINCIPAL (GitHub):
-➡ https://github.com/Separd-sudo/Valledelsol.git
-* Nota: El desarrollo activo, historial de commits y la estrategia de branching se encuentran en la rama 'develop'.
+Estimado/a Docente,
 
-[2] COMPONENTES BACKEND (Ecosistema Maven):
-• BFF (Backend For Frontend): /bff-valle-sol
-• Microservicio de Reportes: /ms-reportes
-• Microservicio de Usuarios: /ms-usuarios
-• Arquetipo Base Utilizado:  /arquetipo-maven-base
+A continuación, se detallan los accesos directos a los repositorios públicos en GitHub utilizados para el control de versiones y el despliegue del ecosistema de microservicios "Valle del Sol"[cite: 21, 88]:
 
-[3] COMPONENTE FRONTEND (Estándar NPM):
-• Interfaz de Usuario: /frontend-valle-sol
-* Configurado con React + Vite, herramientas de calidad (ESLint) y pruebas unitarias (Vitest).
+1. REPOSITORIO PRINCIPAL (Documentación y Orquestación)
+   -> URL: https://github.com/Separd-sudo/Valledelsol.git
+   -> Descripción: Contiene el archivo Docker Compose general, la documentación de arquitectura [cite: 76, 80, 89].
 
-[4] IMÁGENES PUBLICADAS EN PRODUCTION (Docker Hub):
-➡ https://hub.docker.com/u/separdx
-* Las imágenes de los microservicios se compilan y suben automáticamente mediante el pipeline de GitHub Actions ante cada push en la rama develop.
+2. REPOSITORIO COMPONENTE FRONTEND
+   -> URL: https://github.com/Separd-sudo/Valledelsol.git (Si está en el mismo, especificar la subcarpeta /frontend)
+   -> Descripción: Aplicación construida en Next.js utilizando estándares de empaquetado NPM para la interfaz de usuario[cite: 67, 90].
+
+3. REPOSITORIO MICROSERVICIO DE USUARIOS (ms-usuarios)
+   -> URL: https://github.com/Separd-sudo/Valledelsol.git (Especificar subcarpeta /ms-usuarios)
+   -> Descripción: Módulo encargado de la gestión, validación y autenticación de usuarios. Cuenta con persistencia independiente en PostgreSQL (usuarios_db) y la suite de pruebas unitarias con JaCoCo activa[cite: 38, 71, 90].
+
+4. REPOSITORIO MICROSERVICIO DE REPORTES (ms-reportes)
+   -> URL: https://github.com/Separd-sudo/Valledelsol.git (Especificar subcarpeta /ms-reportes)
+   -> Descripción: Módulo responsable del procesamiento de reportes ambientales. Integra comunicación asíncrona mediante Apache Kafka, persistencia aislada en PostgreSQL (reportes_db) y reportes de cobertura automatizados[cite: 20, 38, 90].
+
 ======================================================================
+Nota: Todos los repositorios se encuentran configurados en modalidad PÚBLICA para garantizar el acceso inmediato del equipo evaluador[cite: 43, 88].

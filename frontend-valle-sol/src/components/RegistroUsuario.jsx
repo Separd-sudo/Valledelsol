@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { BFF_USUARIOS_URL } from '../config';
+//import { BFF_USUARIOS_URL } from '../config';
 
+const BFF_USUARIOS_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/usuarios`;
 function RegistroUsuario({ alRegistrar }) {
   const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
+  const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [rol, setRol] = useState('CIUDADANO');
   const [enviando, setEnviando] = useState(false);
@@ -13,14 +14,14 @@ function RegistroUsuario({ alRegistrar }) {
     e.preventDefault();
     setEnviando(true);
 
-    const nuevoUsuario = { nombre, email, password, rol };
+    const nuevoUsuario = { nombre: nombre, correo: correo, password: password, rol: rol };
 
     // Registramos pasando por Kong Gateway hasta llegar al BFF / ms-usuarios
     axios.post(BFF_USUARIOS_URL, nuevoUsuario)
       .then((response) => {
         alert('🎉 Usuario registrado exitosamente en ms-usuarios');
         setNombre('');
-        setEmail('');
+        setCorreo('');
         setPassword('');
         if (alRegistrar) alRegistrar(response.data);
       })
@@ -46,8 +47,8 @@ function RegistroUsuario({ alRegistrar }) {
         <input 
           type="email" 
           placeholder="Correo Electrónico" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
+          value={correo} 
+          onChange={(e) => setCorreo(e.target.value)} 
           required 
           style={styles.input}
         />
@@ -64,7 +65,7 @@ function RegistroUsuario({ alRegistrar }) {
         <select value={rol} onChange={(e) => setRol(e.target.value)} style={styles.input}>
           <option value="CIUDADANO">📢 Ciudadano (Reportes Públicos)</option>
           <option value="BRIGADISTA">🦺 Brigadista (Acciones en Terreno)</option>
-          <option value="FUNCIONARIO">🏢 Administrador Municipal (Mando Global)</option>
+          <option value="FUNCIONARIO_MUNICIPAL">🏢 Administrador Municipal (Mando Global)</option>
         </select>
 
         <button type="submit" disabled={enviando} style={styles.btn}>

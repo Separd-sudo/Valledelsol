@@ -1,5 +1,6 @@
 package cl.valledelsol.ms_usuarios.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,7 +18,13 @@ public class UsuarioRequest {
     @NotBlank(message = "El correo es obligatorio")
     @Email(message = "El correo debe tener un formato válido")
     @Size(max = 150, message = "El correo no puede superar los 150 caracteres")
+    @JsonAlias({"email", "correo"})
     private String correo;
+
+    // 🔑 CORRECCIÓN: Agregamos la password que faltaba con sus validaciones
+    @NotBlank(message = "La contraseña es obligatoria")
+    @Size(min = 6, max = 100, message = "La contraseña debe tener entre 6 y 100 caracteres")
+    private String password;
 
     @NotBlank(message = "El rol es obligatorio")
     private String rol;
@@ -25,27 +32,20 @@ public class UsuarioRequest {
     public UsuarioRequest() {
     }
 
-    public String getNombre() {
-        return nombre;
-    }
+    // =======================================================
+    // GETTERS Y SETTERS (Incluyendo el de password)
+    // =======================================================
 
-    public String getCorreo() {
-        return correo;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    public String getRol() {
-        return rol;
-    }
+    public String getCorreo() { return correo; }
+    public void setCorreo(String correo) { this.correo = correo; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    // 🔑 NUEVO: Getter y Setter para password
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
-
-    public void setRol(String rol) {
-        this.rol = rol;
-    }
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
 }

@@ -1,36 +1,31 @@
 package cl.valledelsol.ms_reportes.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import java.io.Serializable;
 
-/**
- * DTO que captura los datos de entrada desde el exterior.
- */
-public class ReporteRequest {
+public class ReporteRequest implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    @NotBlank(message = "El título no puede estar vacío")
     private String titulo;
-
-    @NotBlank(message = "La descripción no puede estar vacía")
-    @Size(max = 1000, message = "La descripción no puede superar los 1000 caracteres")
     private String descripcion;
-
-    @NotBlank(message = "La ubicación no puede estar vacía")
     private String ubicacion;
-
-    @NotBlank(message = "El nivel de riesgo no puede estar vacío")
     private String nivelRiesgo;
-
-    // Campos opcionales para el PATCH de actualización de estado y coordenadas
-    private String estado;
+    // 🔑 REPARADO CRÍTICO: Añadimos las propiedades que faltaban en el contrato del DTO
     private Double latitud;
     private Double longitud;
 
-    public ReporteRequest() {}
+    public ReporteRequest() {
+    }
 
-    // =========================================================
-    // GETTERS Y SETTERS COMPLETOS
-    // =========================================================
+    public ReporteRequest(String titulo, String descripcion, String ubicacion, String nivelRiesgo, Double latitud, Double longitud) {
+        this.titulo = titulo;
+        this.descripcion = descripcion;
+        this.ubicacion = ubicacion;
+        this.nivelRiesgo = nivelRiesgo;
+        this.latitud = latitud;
+        this.longitud = longitud;
+    }
+
+    // Getters y Setters
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
 
@@ -43,9 +38,7 @@ public class ReporteRequest {
     public String getNivelRiesgo() { return nivelRiesgo; }
     public void setNivelRiesgo(String nivelRiesgo) { this.nivelRiesgo = nivelRiesgo; }
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
-
+    // 🔑 Getters y Setters añadidos para la API REST
     public Double getLatitud() { return latitud; }
     public void setLatitud(Double latitud) { this.latitud = latitud; }
 

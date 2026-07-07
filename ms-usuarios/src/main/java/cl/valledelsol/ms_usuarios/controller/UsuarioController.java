@@ -2,6 +2,8 @@ package cl.valledelsol.ms_usuarios.controller;
 
 import cl.valledelsol.ms_usuarios.model.Usuario;
 import cl.valledelsol.ms_usuarios.service.UsuarioService;
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,21 +28,21 @@ public class UsuarioController {
      * Endpoint para procesar el registro de un nuevo usuario.
      */
     @PostMapping
-    public ResponseEntity<?> crearUsuario(@RequestBody Usuario usuario) {
-        try {
-            Usuario nuevoUsuario = usuarioService.registrarUsuario(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
-        } catch (RuntimeException e) {
-            // Retorna un mensaje de error limpio en caso de correo duplicado
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> crearUsuario(@Valid @RequestBody cl.valledelsol.ms_usuarios.dto.UsuarioRequest request) {
+    try {
+        // 1. Llamamos al servicio pasando el DTO de entrada
+        cl.valledelsol.ms_usuarios.dto.UsuarioResponse response = usuarioService.registrarUsuario(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    } catch (RuntimeException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 
     /**
      * Endpoint para listar todos los usuarios del ecosistema.
      */
     @GetMapping
     public ResponseEntity<List<Usuario>> listarUsuarios() {
-        return ResponseEntity.ok(usuarioService.listarTodos());
+        return ResponseEntity.ok(usuarioService.listarUsuarios());
     }
 }
