@@ -16,7 +16,7 @@ public class AnaliticaListener {
      * Consume del mismo tópico de alertas, demostrando el patrón Publish-Subscribe de Kafka.
      */
     @KafkaListener(
-        topics = "alertas-incendios",
+        topics = "incidentes-incendios",
         groupId = "valle-sol-analitica-group",
         properties = {"spring.json.value.default.type=cl.valledelsol.ms_analitica.dto.ReporteEventDTO"}
     )
