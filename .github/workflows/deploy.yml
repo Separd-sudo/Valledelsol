@@ -12,11 +12,21 @@ jobs:
   build-and-push:
     name: Compilar, Testear y Subir a ECR
     runs-on: ubuntu-latest
-    
+
     # Estrategia de matriz para procesar todos los microservicios en paralelo
     strategy:
       matrix:
-        service: [bff-valle-sol, ms-reportes, ms-usuarios, ms-auth, ms-geografico, ms-alertas, ms-analitica, frontend-valle-sol]
+        service:
+          [
+            bff-valle-sol,
+            ms-reportes,
+            ms-usuarios,
+            ms-auth,
+            ms-geografico,
+            ms-alertas,
+            ms-analitica,
+            frontend-valle-sol,
+          ]
 
     steps:
       # Paso 1: Clonar el código del repositorio
@@ -27,9 +37,9 @@ jobs:
       - name: Configurar JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
 
       # Paso 3: Ejecutar pruebas unitarias (Solo si es un microservicio Java con pom.xml)
       - name: Ejecutar Pruebas Unitarias (Maven Test)
@@ -51,7 +61,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      # Paso 5: Autenticarse en Amazon ECR (Elastic Container Registry)
+      # Paso 5: Autenticarse en Amazon ECR (Elastic Container Registry).
       - name: Iniciar Sesión en Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
