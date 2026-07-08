@@ -1,50 +1,73 @@
-# Nombre del flujo de trabajo que se mostrará en la pestaña "Actions" de GitHub
-name: CI/CD Valle del Sol - Docker Hub
+# Nombre del flujo de trabajo de integración y despliegue continuo en AWS
+name: CI/CD Valle del Sol - AWS ECR
 
-# Definición de disparadores (Triggers)
+# Disparador: Se activa automáticamente al hacer 'git push' a la rama 'develop'
 on:
   push:
     branches:
-      - develop # El pipeline se activará automáticamente al hacer 'git push' a esta rama
+      - develop
 
 jobs:
-  # Definición del trabajo para compilar y subir las imágenes
+  # Trabajo para validar, compilar y subir las imágenes Docker a Amazon ECR
   build-and-push:
-    name: Compilar y Subir Microservicios
+    name: Compilar, Testear y Subir a ECR
     runs-on: ubuntu-latest
     
-    # Estrategia de matriz para procesar los 7 microservicios en paralelo
+    # Estrategia de matriz para procesar todos los microservicios en paralelo
     strategy:
       matrix:
-        service: [bff-valle-sol, ms-reportes, ms-usuarios,  ms-auth, ms-geografico, ms-alertas, ms-analitica] # Lista de carpetas de los microservicios
+        service: [bff-valle-sol, ms-reportes, ms-usuarios, ms-auth, ms-geografico, ms-alertas, ms-analitica, frontend-valle-sol]
 
     steps:
-      # Paso 1: Clonar el código del repositorio en la máquina virtual de GitHub actions
+      # Paso 1: Clonar el código del repositorio
       - name: Descargar Código del Repositorio
         uses: actions/checkout@v4
 
-      # Paso 2: Autenticarse en Docker Hub usando las credenciales guardadas en los Secretos de GitHub
-      - name: Iniciar Sesión en Docker Hub
-        uses: docker/login-action@v3
+      # Paso 2: Configurar JDK 17 para poder ejecutar las pruebas unitarias de Java/Maven
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
 
-      # Paso 3: Configurar Docker Buildx (Herramienta para optimizar la construcción y manejo de caché)
+      # Paso 3: Ejecutar pruebas unitarias (Solo si es un microservicio Java con pom.xml)
+      - name: Ejecutar Pruebas Unitarias (Maven Test)
+        run: |
+          cd ./${{ matrix.service }}
+          if [ -f "pom.xml" ]; then
+            echo "=== Iniciando Pruebas Unitarias para ${{ matrix.service }} ==="
+            mvn test
+          else
+            echo "=== ${{ matrix.service }} no es un proyecto Maven, omitiendo tests ==="
+          fi
+
+      # Paso 4: Configurar credenciales de AWS usando los secretos de GitHub
+      - name: Configurar Credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      # Paso 5: Autenticarse en Amazon ECR (Elastic Container Registry)
+      - name: Iniciar Sesión en Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Paso 6: Configurar Docker Buildx (Para optimizar la compilación de imágenes)
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Paso 4: Compilar el código y subir la imagen construida a Docker Hub
-      - name: Construir y Publicar Imagen Docker
+      # Paso 7: Construir la imagen Docker y subirla (Push) a Amazon ECR
+      - name: Construir y Publicar Imagen en Amazon ECR
         uses: docker/build-push-action@v5
         with:
-          # Define el contexto de ejecución apuntando a la carpeta específica del microservicio actual de la matriz
           context: ./${{ matrix.service }}
-          # Ruta explícita del Dockerfile a utilizar
           file: ./${{ matrix.service }}/Dockerfile
-          # Indica que una vez construida con éxito, la imagen debe subirse (push) inmediatamente a Docker Hub
           push: true
-          # Etiquetas (Tags) con las que se guardará la imagen. Reutiliza el nombre de la carpeta como nombre del repositorio Docker
+          # Construye la URI del registro de ECR dinámicamente usando el ID de cuenta de AWS
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:develop
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/${{ matrix.service }}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/${{ matrix.service }}:${{ github.sha }}

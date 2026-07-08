@@ -66,14 +66,14 @@ public class BffServiceTest {
         ResponseEntity<List<ReporteResponse>> responseReportes = ResponseEntity.ok(listaReportesSimulada);
 
         Mockito.when(restTemplate.exchange(
-                ArgumentMatchers.contains("/api/usuarios"),
+                ArgumentMatchers.contains("/api/v1/usuarios"),
                 ArgumentMatchers.eq(HttpMethod.GET),
                 ArgumentMatchers.isNull(),
                 ArgumentMatchers.any(ParameterizedTypeReference.class)
         )).thenReturn(responseUsuarios);
 
         Mockito.when(restTemplate.exchange(
-                ArgumentMatchers.contains("/api/reportes"),
+                ArgumentMatchers.contains("/api/v1/reportes"),
                 ArgumentMatchers.eq(HttpMethod.GET),
                 ArgumentMatchers.isNull(),
                 ArgumentMatchers.any(ParameterizedTypeReference.class)
@@ -95,14 +95,14 @@ public class BffServiceTest {
         ResponseEntity<List<ReporteResponse>> responseReportesNula = ResponseEntity.ok(listaRepVacia);
 
         Mockito.when(restTemplate.exchange(
-                ArgumentMatchers.contains("/api/usuarios"),
+                ArgumentMatchers.contains("/api/v1/usuarios"),
                 ArgumentMatchers.eq(HttpMethod.GET),
                 ArgumentMatchers.isNull(),
                 ArgumentMatchers.any(ParameterizedTypeReference.class)
         )).thenReturn(responseUsuariosNula);
 
         Mockito.when(restTemplate.exchange(
-                ArgumentMatchers.contains("/api/reportes"),
+                ArgumentMatchers.contains("/api/v1/reportes"),
                 ArgumentMatchers.eq(HttpMethod.GET),
                 ArgumentMatchers.isNull(),
                 ArgumentMatchers.any(ParameterizedTypeReference.class)
@@ -114,4 +114,4 @@ public class BffServiceTest {
         assertEquals(0, resultado.getTotalUsuarios());
         assertEquals(0, resultado.getTotalReportes());
     }
-}
+}

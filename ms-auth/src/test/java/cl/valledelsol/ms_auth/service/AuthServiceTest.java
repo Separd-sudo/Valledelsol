@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Optional;
 
@@ -24,12 +26,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthServiceTest {
 
     @Mock
     private UsuarioAuthRepository usuarioAuthRepository;
 
-    // Necesario porque AuthService ahora depende de PasswordEncoder para
+    // Necesario porque AuthService depende de PasswordEncoder para
     // verificar el login. Sin este mock, el test fallaria con NPE.
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -44,7 +47,6 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        // 🔑 ALINEADO: Constructor de 5 parámetros incluyendo el campo 'nombre'
         usuarioBase = new UsuarioAuth(10L, "test@valledelsol.cl", "Clave123!", "CIUDADANO", "Vecino Colaborador");
     }
 
@@ -57,9 +59,7 @@ class AuthServiceTest {
     void autenticarCiudadanoExitoso() {
         LoginRequestDTO request = new LoginRequestDTO("test@valledelsol.cl", "Clave123!");
 
-        // 🔑 ALINEADO: findByCorreo() y getCorreo()
-        // Simula que el password recibido SI coincide con el hash guardado,
-        // sin ejecutar BCrypt real (no es lo que este test busca validar).
+        // Simula que el password recibido SI coincide con el hash guardado
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
         when(jwtService.generarToken(anyLong(), anyString(), anyString(), anyString())).thenReturn("jwt-simulado");
@@ -72,8 +72,8 @@ class AuthServiceTest {
         assertEquals(3600L, response.getExpiresIn());
         assertEquals("CIUDADANO", response.getRol());
         assertEquals("Vecino Colaborador", response.getNombre());
-        // 🔑 ALINEADO: Verifica contra el método corregido getTokenJwt() y el prefijo de tu Service
-        assertTrue(response.getTokenJwt().contains("JWT_SECRET_CIUDADANO_VALLE_10"));
+        // El token devuelto es el que retorna el mock de jwtService
+        assertEquals("jwt-simulado", response.getTokenJwt());
     }
 
     @Test
@@ -87,22 +87,22 @@ class AuthServiceTest {
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
         when(jwtService.generarToken(anyLong(), anyString(), anyString(), anyString())).thenReturn("jwt-simulado");
         when(jwtService.getExpirationMs()).thenReturn(3600000L);
+
         TokenResponseDTO response = authService.autenticar(request);
 
         assertNotNull(response);
         assertEquals("BRIGADISTA", response.getRol());
-        assertTrue(response.getTokenJwt().contains("JWT_SECRET_BRIGADISTA_TERRENO_10"));
+        assertEquals("jwt-simulado", response.getTokenJwt());
     }
 
     @Test
     @DisplayName("Debería autenticar exitosamente y retornar token de FUNCIONARIO")
     void autenticarFuncionarioExitoso() {
-        // 🔑 ALINEADO: Rol cambiado a 'FUNCIONARIO' para calzar con tu switch del Service y BD
         usuarioBase.setRol("FUNCIONARIO");
         usuarioBase.setNombre("Roro");
         LoginRequestDTO request = new LoginRequestDTO("test@valledelsol.cl", "Clave123!");
 
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);   
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
         when(jwtService.generarToken(anyLong(), anyString(), anyString(), anyString())).thenReturn("jwt-simulado");
         when(jwtService.getExpirationMs()).thenReturn(3600000L);
@@ -119,8 +119,7 @@ class AuthServiceTest {
     void autenticarUsuarioNoExiste() {
         LoginRequestDTO request = new LoginRequestDTO("inexistente@valledelsol.cl", "Password123");
 
-        // Simula que el password NO coincide, para probar el camino de rechazo.
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
+        // Cuando el usuario no existe, el servicio lanza ANTES de llamar a passwordEncoder
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -151,6 +150,8 @@ class AuthServiceTest {
         usuarioBase.setRol("ROLE_ANOMALO");
         LoginRequestDTO request = new LoginRequestDTO("test@valledelsol.cl", "Clave123!");
 
+        // El password debe pasar para que el servicio llegue a validar el rol
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(usuarioAuthRepository.findByCorreo(request.getCorreo())).thenReturn(Optional.of(usuarioBase));
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
@@ -171,13 +172,13 @@ class AuthServiceTest {
         assertNull(usuarioVacio.getId());
 
         usuarioVacio.setId(5L);
-        usuarioVacio.setCorreo("vecino@valledelsol.cl"); // 🔑 ALINEADO
+        usuarioVacio.setCorreo("vecino@valledelsol.cl");
         usuarioVacio.setPassword("segura123");
         usuarioVacio.setRol("CIUDADANO");
         usuarioVacio.setNombre("Brandon");
 
         assertEquals(5L, usuarioVacio.getId());
-        assertEquals("vecino@valledelsol.cl", usuarioVacio.getCorreo()); // 🔑 ALINEADO
+        assertEquals("vecino@valledelsol.cl", usuarioVacio.getCorreo());
         assertEquals("segura123", usuarioVacio.getPassword());
         assertEquals("CIUDADANO", usuarioVacio.getRol());
         assertEquals("Brandon", usuarioVacio.getNombre());
@@ -187,12 +188,12 @@ class AuthServiceTest {
     @DisplayName("Debería validar los Getters y Setters de LoginRequestDTO")
     void testLoginRequestDTOGettersSettersYConstructores() {
         LoginRequestDTO dtoVacio = new LoginRequestDTO();
-        assertNull(dtoVacio.getCorreo()); // 🔑 ALINEADO
+        assertNull(dtoVacio.getCorreo());
 
-        dtoVacio.setCorreo("funcionario@valledelsol.cl"); // 🔑 ALINEADO
+        dtoVacio.setCorreo("funcionario@valledelsol.cl");
         dtoVacio.setPassword("admin2026");
 
-        assertEquals("funcionario@valledelsol.cl", dtoVacio.getCorreo()); // 🔑 ALINEADO
+        assertEquals("funcionario@valledelsol.cl", dtoVacio.getCorreo());
         assertEquals("admin2026", dtoVacio.getPassword());
     }
 
@@ -200,21 +201,20 @@ class AuthServiceTest {
     @DisplayName("Debería validar los Getters y Setters de TokenResponseDTO")
     void testTokenResponseDTOGettersSettersYConstructores() {
         TokenResponseDTO dtoVacio = new TokenResponseDTO();
-        assertNull(dtoVacio.getTokenJwt()); // 🔑 ALINEADO
+        assertNull(dtoVacio.getTokenJwt());
 
-        dtoVacio.setTokenJwt("TOKEN_XYZ"); // 🔑 ALINEADO
+        dtoVacio.setTokenJwt("TOKEN_XYZ");
         dtoVacio.setRol("CIUDADANO");
         dtoVacio.setNombre("Brandon");
         dtoVacio.setTokenType("Bearer");
         dtoVacio.setExpiresIn(3600L);
 
-        assertEquals("TOKEN_XYZ", dtoVacio.getTokenJwt()); // 🔑 ALINEADO
+        assertEquals("TOKEN_XYZ", dtoVacio.getTokenJwt());
         assertEquals("CIUDADANO", dtoVacio.getRol());
         assertEquals("Brandon", dtoVacio.getNombre());
         assertEquals("Bearer", dtoVacio.getTokenType());
         assertEquals(3600L, dtoVacio.getExpiresIn());
 
-        // 🔑 ALINEADO: Constructor nuevo completo de 5 parámetros
         TokenResponseDTO dtoCompleto = new TokenResponseDTO("TOKEN_CONSTRUCTOR", "CIUDADANO", "Brandon", "Bearer", 1800L);
         assertEquals("TOKEN_CONSTRUCTOR", dtoCompleto.getTokenJwt());
         assertEquals("Bearer", dtoCompleto.getTokenType());
