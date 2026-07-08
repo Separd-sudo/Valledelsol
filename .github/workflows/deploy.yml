@@ -8,51 +8,24 @@ on:
       - develop
 
 jobs:
-  # Trabajo para validar, compilar y subir las imágenes Docker a Amazon ECR
   build-and-push:
-    name: Compilar, Testear y Subir a ECR
+    name: Compilar, Testear y Subir a ECR (Secuencial)
     runs-on: ubuntu-latest
 
-    # Estrategia de matriz para procesar todos los microservicios en paralelo
-    strategy:
-      matrix:
-        service:
-          [
-            bff-valle-sol,
-            ms-reportes,
-            ms-usuarios,
-            ms-auth,
-            ms-geografico,
-            ms-alertas,
-            ms-analitica,
-            frontend-valle-sol,
-          ]
-
     steps:
-      # Paso 1: Clonar el código del repositorio
+      # ==========================================
+      # ETAPA 0: CONFIGURACIÓN GENERAL DEL RUNNER
+      # ==========================================
       - name: Descargar Código del Repositorio
         uses: actions/checkout@v4
 
-      # Paso 2: Configurar JDK 17 para poder ejecutar las pruebas unitarias de Java/Maven
       - name: Configurar JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: "17"
-          distribution: "temurin"
-          cache: "maven"
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
 
-      # Paso 3: Ejecutar pruebas unitarias (Solo si es un microservicio Java con pom.xml)
-      - name: Ejecutar Pruebas Unitarias (Maven Test)
-        run: |
-          cd ./${{ matrix.service }}
-          if [ -f "pom.xml" ]; then
-            echo "=== Iniciando Pruebas Unitarias para ${{ matrix.service }} ==="
-            mvn test
-          else
-            echo "=== ${{ matrix.service }} no es un proyecto Maven, omitiendo tests ==="
-          fi
-
-      # Paso 4: Configurar credenciales de AWS usando los secretos de GitHub
       - name: Configurar Credenciales de AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -61,23 +34,148 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      # Paso 5: Autenticarse en Amazon ECR (Elastic Container Registry)
       - name: Iniciar Sesión en Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Paso 6: Configurar Docker Buildx (Para optimizar la compilación de imágenes)
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Paso 7: Construir la imagen Docker y subirla (Push) a Amazon ECR
-      - name: Construir y Publicar Imagen en Amazon ECR
+      # ==========================================
+      # ETAPA 1: MS-AUTH
+      # ==========================================
+      - name: [ms-auth] Ejecutar Pruebas Unitarias
+        run: |
+          cd ./ms-auth
+          mvn test
+
+      - name: [ms-auth] Construir y Publicar Imagen en ECR
         uses: docker/build-push-action@v5
         with:
-          context: ./${{ matrix.service }}
-          file: ./${{ matrix.service }}/Dockerfile
+          context: ./ms-auth
+          file: ./ms-auth/Dockerfile
           push: true
-          # Usamos directamente el ID de cuenta de AWS hardcodeado (473818454094) para evitar fallos si el secreto de GitHub no está mapeado.
           tags: |
-            473818454094.dkr.ecr.us-east-1.amazonaws.com/${{ matrix.service }}:latest
-            473818454094.dkr.ecr.us-east-1.amazonaws.com/${{ matrix.service }}:${{ github.sha }}
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-auth:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-auth:${{ github.sha }}
+
+      # ==========================================
+      # ETAPA 2: MS-USUARIOS
+      # ==========================================
+      - name: [ms-usuarios] Ejecutar Pruebas Unitarias
+        run: |
+          cd ./ms-usuarios
+          mvn test
+
+      - name: [ms-usuarios] Construir y Publicar Imagen en ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ms-usuarios
+          file: ./ms-usuarios/Dockerfile
+          push: true
+          tags: |
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-usuarios:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-usuarios:${{ github.sha }}
+
+      # ==========================================
+      # ETAPA 3: MS-REPORTES
+      # ==========================================
+      - name: [ms-reportes] Ejecutar Pruebas Unitarias
+        run: |
+          cd ./ms-reportes
+          mvn test
+
+      - name: [ms-reportes] Construir y Publicar Imagen en ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ms-reportes
+          file: ./ms-reportes/Dockerfile
+          push: true
+          tags: |
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-reportes:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-reportes:${{ github.sha }}
+
+      # ==========================================
+      # ETAPA 4: MS-ALERTAS
+      # ==========================================
+      - name: [ms-alertas] Ejecutar Pruebas Unitarias
+        run: |
+          cd ./ms-alertas
+          mvn test
+
+      - name: [ms-alertas] Construir y Publicar Imagen en ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ms-alertas
+          file: ./ms-alertas/Dockerfile
+          push: true
+          tags: |
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-alertas:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-alertas:${{ github.sha }}
+
+      # ==========================================
+      # ETAPA 5: MS-ANALITICA
+      # ==========================================
+      - name: [ms-analitica] Ejecutar Pruebas Unitarias
+        run: |
+          cd ./ms-analitica
+          mvn test
+
+      - name: [ms-analitica] Construir y Publicar Imagen en ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ms-analitica
+          file: ./ms-analitica/Dockerfile
+          push: true
+          tags: |
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-analitica:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-analitica:${{ github.sha }}
+
+      # ==========================================
+      # ETAPA 6: MS-GEOGRAFICO
+      # ==========================================
+      - name: [ms-geografico] Ejecutar Pruebas Unitarias
+        run: |
+          cd ./ms-geografico
+          mvn test
+
+      - name: [ms-geografico] Construir y Publicar Imagen en ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ms-geografico
+          file: ./ms-geografico/Dockerfile
+          push: true
+          tags: |
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-geografico:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-geografico:${{ github.sha }}
+
+      # ==========================================
+      # ETAPA 7: BFF-VALLE-SOL
+      # ==========================================
+      - name: [bff-valle-sol] Ejecutar Pruebas Unitarias
+        run: |
+          cd ./bff-valle-sol
+          mvn test
+
+      - name: [bff-valle-sol] Construir y Publicar Imagen en ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./bff-valle-sol
+          file: ./bff-valle-sol/Dockerfile
+          push: true
+          tags: |
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/bff-valle-sol:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/bff-valle-sol:${{ github.sha }}
+
+      # ==========================================
+      # ETAPA 8: FRONTEND-VALLE-SOL
+      # ==========================================
+      - name: [frontend-valle-sol] Construir y Publicar Imagen en ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend-valle-sol
+          file: ./frontend-valle-sol/Dockerfile
+          push: true
+          tags: |
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/frontend-valle-sol:latest
+            473818454094.dkr.ecr.us-east-1.amazonaws.com/frontend-valle-sol:${{ github.sha }}
