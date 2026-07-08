@@ -1,50 +1,178 @@
-# Nombre del flujo de trabajo que se mostrará en la pestaña "Actions" de GitHub
-name: CI/CD Valle del Sol - Docker Hub
+name: CI/CD EKS Build Push Deploy EP3
 
-# Definición de disparadores (Triggers)
 on:
   push:
     branches:
-      - develop # El pipeline se activará automáticamente al hacer 'git push' a esta rama
+      - develop # Se activa al hacer push a la rama develop
+
+env:
+  AWS_ACCOUNT_ID: 473818454094
+  AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: cluster-valle-del-Sol
+
+  # Repositorios ECR de cada componente
+  ECR_BFF: bff-valle-sol
+  ECR_MS_AUTH: ms-auth
+  ECR_MS_USUARIOS: ms-usuarios
+  ECR_MS_REPORTES: ms-reportes
+  ECR_MS_ALERTAS: ms-alertas
+  ECR_MS_ANALITICA: ms-analitica
+  ECR_MS_GEOGRAFICO: ms-geografico
+  ECR_FRONTEND: frontend-valle-sol
 
 jobs:
-  # Definición del trabajo para compilar y subir las imágenes
-  build-and-push:
-    name: Compilar y Subir Microservicios
+  build-push-deploy:
+    name: Build, Push to ECR and Deploy to EKS
     runs-on: ubuntu-latest
-    
-    # Estrategia de matriz para procesar los 7 microservicios en paralelo
-    strategy:
-      matrix:
-        service: [bff-valle-sol, ms-reportes, ms-usuarios,  ms-auth, ms-geografico, ms-alertas, ms-analitica] # Lista de carpetas de los microservicios
 
     steps:
-      # Paso 1: Clonar el código del repositorio en la máquina virtual de GitHub actions
-      - name: Descargar Código del Repositorio
+      # 1. Descarga el código fuente desde GitHub
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Paso 2: Autenticarse en Docker Hub usando las credenciales guardadas en los Secretos de GitHub
-      - name: Iniciar Sesión en Docker Hub
-        uses: docker/login-action@v3
+      # 2. Configurar las credenciales temporales de AWS Academy
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # Paso 3: Configurar Docker Buildx (Herramienta para optimizar la construcción y manejo de caché)
-      - name: Configurar Docker Buildx
+      # 3. Autenticar con Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4. Configurar el constructor de Docker compatible con entornos autenticados
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      # Paso 4: Compilar el código y subir la imagen construida a Docker Hub
-      - name: Construir y Publicar Imagen Docker
-        uses: docker/build-push-action@v5
         with:
-          # Define el contexto de ejecución apuntando a la carpeta específica del microservicio actual de la matriz
-          context: ./${{ matrix.service }}
-          # Ruta explícita del Dockerfile a utilizar
-          file: ./${{ matrix.service }}/Dockerfile
-          # Indica que una vez construida con éxito, la imagen debe subirse (push) inmediatamente a Docker Hub
+          driver: docker-container
+
+      # ==========================================
+      # CONSTRUCCIÓN Y PUSH DE IMÁGENES A ECR
+      # ==========================================
+
+      # ms-auth
+      - name: Build and push ms-auth image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ms-auth
+          file: ./ms-auth/Dockerfile
           push: true
-          # Etiquetas (Tags) con las que se guardará la imagen. Reutiliza el nombre de la carpeta como nombre del repositorio Docker
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:develop
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_MS_AUTH }}:latest
+          provenance: false
+
+      # ms-usuarios
+      - name: Build and push ms-usuarios image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ms-usuarios
+          file: ./ms-usuarios/Dockerfile
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_MS_USUARIOS }}:latest
+          provenance: false
+
+      # ms-reportes
+      - name: Build and push ms-reportes image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ms-reportes
+          file: ./ms-reportes/Dockerfile
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_MS_REPORTES }}:latest
+          provenance: false
+
+      # ms-alertas
+      - name: Build and push ms-alertas image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ms-alertas
+          file: ./ms-alertas/Dockerfile
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_MS_ALERTAS }}:latest
+          provenance: false
+
+      # ms-analitica
+      - name: Build and push ms-analitica image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ms-analitica
+          file: ./ms-analitica/Dockerfile
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_MS_ANALITICA }}:latest
+          provenance: false
+
+      # ms-geografico
+      - name: Build and push ms-geografico image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ms-geografico
+          file: ./ms-geografico/Dockerfile
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_MS_GEOGRAFICO }}:latest
+          provenance: false
+
+      # bff-valle-sol
+      - name: Build and push bff-valle-sol image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./bff-valle-sol
+          file: ./bff-valle-sol/Dockerfile
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_BFF }}:latest
+          provenance: false
+
+      # frontend-valle-sol
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend-valle-sol
+          file: ./frontend-valle-sol/Dockerfile
+          push: true
+          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_FRONTEND }}:latest
+          provenance: false
+
+      # ==========================================
+      # DESPLIEGUE CONTINUO EN EL CLÚSTER DE EKS
+      # ==========================================
+
+      # 5. Configurar kubectl para conectarse al clúster de EKS
+      - name: Update Kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+
+      # 6. Desplegar los manifiestos en el clúster
+      - name: Deploy Manifests to EKS
+        run: |
+          # 1. Aplicar Namespace y Configuraciones Globales
+          kubectl apply -f k8s/global/namespace.yaml || true
+          kubectl apply -f k8s/global/db-secrets.yaml || true
+          kubectl apply -f k8s/global/db-config.yaml || true
+
+          # 2. Desplegar la Persistencia (Postgres) y Cola (Kafka)
+          kubectl apply -f k8s/postgres/ || true
+          kubectl apply -f k8s/kafka/ || true
+
+          # 3. Desplegar Microservicios (Lógica de Negocio)
+          kubectl apply -f k8s/ms-auth/ || true
+          kubectl apply -f k8s/ms-usuarios/ || true
+          kubectl apply -f k8s/ms-reportes/ || true
+          kubectl apply -f k8s/ms-alertas/ || true
+          kubectl apply -f k8s/ms-analitica/ || true
+          kubectl apply -f k8s/ms-geografico/ || true
+
+          # 4. Desplegar Capa de Integración y Presentación (BFF y Frontend)
+          kubectl apply -f k8s/bff-valle-sol/ || true
+          kubectl apply -f k8s/frontend-valle-sol/ || true
+
+          # 5. Reinicio controlado para aplicar imágenes nuevas inmediatamente
+          kubectl rollout restart deployment/ms-auth-deployment -n valle-del-sol || true
+          kubectl rollout restart deployment/ms-usuarios-deployment -n valle-del-sol || true
+          kubectl rollout restart deployment/ms-reportes-deployment -n valle-del-sol || true
+          kubectl rollout restart deployment/ms-alertas-deployment -n valle-del-sol || true
+          kubectl rollout restart deployment/ms-analitica-deployment -n valle-del-sol || true
+          kubectl rollout restart deployment/ms-geografico-deployment -n valle-del-sol || true
+          kubectl rollout restart deployment/bff-valle-sol-deployment -n valle-del-sol || true
+          kubectl rollout restart deployment/frontend-valle-sol-deployment -n valle-del-sol || true

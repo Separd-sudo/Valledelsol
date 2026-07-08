@@ -166,11 +166,13 @@ services:
     depends_on:
       - postgres-usuarios # 🔑 CORREGIDO: Ahora espera a la base de datos real de usuarios
     ports:
-      - "8083:8080" # 🔑 CORREGIDO: Mapea el puerto externo 8083 al interno 8080 de tu log de Tomcat
+      - "8083:8083" # 🔑 CORREGIDO: Mapea el puerto externo 8083 al interno 8083 de tu log de Tomcat
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-usuarios:5432/${DB_NAME_USUARIOS} # 🔑 REPARADO: Apunta a usuarios_db de forma nativa
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
+      - JWT_SECRET=${JWT_SECRET:-NUj5SYvv0DYb895RqG3G1mpkB+oH0Sr19fNWm0E6Jos=}
+      - JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS:-3600000}
     networks:
       - valle-network
 
@@ -186,12 +188,14 @@ services:
     depends_on:
       - postgres-alertas
       - kafka
+      - ms-usuarios
     ports:
       - "${PORT_MS_ALERTAS}:8084"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:${SPRING_DATASOURCE_URL_ALERTAS}
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASS}
+      - MS_USUARIOS_URL=${MS_USUARIOS_URL}
     networks:
       - valle-network
 
@@ -288,6 +292,8 @@ services:
     container_name: bff-valle-sol
     restart: unless-stopped
     depends_on:
+      - ms-alertas
+      - ms-auth
       - ms-reportes
       - ms-usuarios
       - ms-analitica
@@ -295,10 +301,13 @@ services:
     ports:
       - "${PORT_BFF}:8080"
     environment:
-      - MS_USUARIOS_URL=${MS_USUARIOS_URL}
-      - MS_REPORTES_URL=${MS_REPORTES_URL}
-      - MS_ANALITICA_URL=http://kong-gateway:8000
-      - MS_GEOGRAFICO_URL=http://kong-gateway:8000
+      - MS_USUARIOS_URL=http://ms-usuarios:8082
+      - MS_REPORTES_URL=http://ms-reportes:8081
+      - MS_AUTH_URL=http://ms-auth:8083
+      - MS_ALERTAS_URL=http://ms-alertas:8084
+      - MS_ANALITICA_URL=http://ms-analitica:8085
+      - MS_GEOGRAFICO_URL=http://ms-geografico:8086
+      - JWT_SECRET=${JWT_SECRET:-NUj5SYvv0DYb895RqG3G1mpkB+oH0Sr19fNWm0E6Jos=}
     networks:
       - valle-network
 

@@ -19,15 +19,15 @@ public class AnaliticaService {
      */
     public void registrarEnHistorial(ReporteEventDTO evento) {
         RegistroHistorico historial = new RegistroHistorico();
-        historial.setIdReporteOriginal(evento.getIdReporte());
+        historial.setIdReporteOriginal(evento.getId());
         historial.setDescripcion(evento.getDescripcion());
         historial.setEstado(evento.getEstado());
-        historial.setGravedad(evento.getGravedad());
-        historial.setSector(evento.getSector());
+        historial.setGravedad(evento.getNivelRiesgo());
+        historial.setSector(evento.getUbicacion());
         historial.setFechaRegistroKafka(LocalDateTime.now().toString());
 
         repository.save(historial);
-        System.out.println("💾 [MS-ANALITICA] Evento persistido con éxito en analitica_db para el reporte ID: " + evento.getIdReporte());
+        System.out.println("💾 [MS-ANALITICA] Evento persistido con éxito en analitica_db para el reporte ID: " + evento.getId());
     }
 
     /**

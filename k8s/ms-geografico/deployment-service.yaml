@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-geografico-deployment
+  namespace: valle-del-sol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-geografico
+  template:
+    metadata:
+      labels:
+        app: ms-geografico
+    spec:
+      containers:
+      - name: ms-geografico
+        image: 473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-geografico:latest
+        ports:
+        - containerPort: 8086
+        env:
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: SPRING_DATASOURCE_URL_GEOGRAFICO
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_PASSWORD
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-geografico-service
+  namespace: valle-del-sol
+spec:
+  ports:
+  - port: 8086
+    targetPort: 8086
+  selector:
+    app: ms-geografico

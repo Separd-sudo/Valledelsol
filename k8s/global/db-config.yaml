@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: valle-config
+  namespace: valle-del-sol
+data:
+  # Base de Datos (URLs de conexión JDBC apuntando al Postgres interno del clúster)
+  SPRING_DATASOURCE_URL_REPORTES: "jdbc:postgresql://postgres-service:5432/reportes_db"
+  SPRING_DATASOURCE_URL_USUARIOS: "jdbc:postgresql://postgres-service:5432/usuarios_db"
+  SPRING_DATASOURCE_URL_ALERTAS: "jdbc:postgresql://postgres-service:5432/alertas_db"
+  SPRING_DATASOURCE_URL_ANALITICA: "jdbc:postgresql://postgres-service:5432/analitica_db"
+  SPRING_DATASOURCE_URL_GEOGRAFICO: "jdbc:postgresql://postgres-service:5432/geografico_db"
+  
+  # Base de Datos (Configuración de Hibernate)
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  
+  # Mensajería (Bootstrap Server de Kafka interno del clúster)
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka-service:9092"
+  
+  # URLs de Microservicios para el BFF
+  MS_USUARIOS_URL: "http://ms-usuarios-service:8082"
+  MS_REPORTES_URL: "http://ms-reportes-service:8081"
+  MS_AUTH_URL: "http://ms-auth-service:8083"
+  MS_ALERTAS_URL: "http://ms-alertas-service:8084"
+  MS_ANALITICA_URL: "http://ms-analitica-service:8085"
+  MS_GEOGRAFICO_URL: "http://ms-geografico-service:8086"
+  
+  # Puertos de servicios internos
+  PORT_BFF: "8080"
+  PORT_MS_REPORTES: "8081"
+  PORT_MS_USUARIOS: "8082"
+  PORT_MS_AUTH: "8083"
+  PORT_MS_ALERTAS: "8084"
+  PORT_MS_ANALITICA: "8085"
+  PORT_MS_GEOGRAFICO: "8086"

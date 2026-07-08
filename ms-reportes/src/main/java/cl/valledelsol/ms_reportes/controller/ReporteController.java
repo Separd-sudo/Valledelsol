@@ -6,6 +6,9 @@ import cl.valledelsol.ms_reportes.service.ReporteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import cl.valledelsol.ms_reportes.dto.ActualizarReporteRequest;
+import java.util.NoSuchElementException;
+import java.util.Map;
 
 import java.util.List;
 
@@ -37,4 +40,18 @@ public class ReporteController {
     public ResponseEntity<List<Reporte>> listarReportes() {
         return ResponseEntity.ok(reporteService.listarTodos());
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarReporte(@PathVariable Long id, @RequestBody ActualizarReporteRequest request) {
+        try {
+                 Reporte reporteActualizado = reporteService.actualizarReporte(id, request);
+        return ResponseEntity.ok(reporteActualizado);
+    } catch (NoSuchElementException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error interno al actualizar el reporte: " + e.getMessage()));
+    }
+}
 }

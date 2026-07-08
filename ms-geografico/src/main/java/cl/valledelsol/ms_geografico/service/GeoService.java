@@ -17,7 +17,8 @@ public class GeoService {
      * Procesa de forma asíncrona las coordenadas del mapa.
      */
     public void registrarPuntoMapa(GeoEventDTO evento) {
-        CoordenadaIncendio geo = new CoordenadaIncendio();
+        CoordenadaIncendio geo = repository.findByIdReporte(evento.getId())
+                 .orElse(new CoordenadaIncendio());
         geo.setIdGeo(null);
         geo.setIdReporte(evento.getId());
         geo.setSector(evento.getUbicacion());

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-sql
+  namespace: valle-del-sol
+data:
+  init-multiple-dbs.sql: |
+    CREATE DATABASE reportes_db;
+    CREATE DATABASE alertas_db;
+    CREATE DATABASE analitica_db;
+    CREATE DATABASE geografico_db;
+    GRANT ALL PRIVILEGES ON DATABASE reportes_db TO valle_user;
+    GRANT ALL PRIVILEGES ON DATABASE alertas_db TO valle_user;
+    GRANT ALL PRIVILEGES ON DATABASE analitica_db TO valle_user;
+    GRANT ALL PRIVILEGES ON DATABASE geografico_db TO valle_user;

@@ -2,6 +2,7 @@ package cl.valledelsol.ms_reportes;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.kafka.annotation.EnableKafka;
 
 /*
  * Clase principal del microservicio de reportes.
@@ -16,6 +17,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * cl.valledelsol.ms_reportes.dto
  * Esto permite que Spring gestione la inyección de dependencias y el ciclo de vida
  */
+@EnableKafka
 @SpringBootApplication
 public class MsReportesApplication {
 

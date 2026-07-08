@@ -12,22 +12,23 @@ import java.util.Arrays;
 public class CorsConfig {
 
     @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        
-        config.setAllowCredentials(true);
-        
-        // 🔑 CORRECCIÓN: Agregamos el puerto 3000 de Next.js que está usando tu Front
-        config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000", 
-            "http://127.0.0.1:3000"
-        ));
-        
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
-    }
+public CorsFilter corsFilter() {
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    CorsConfiguration config = new CorsConfiguration();
+    
+    config.setAllowCredentials(true);
+    
+    // 🔑 Agregamos también la IP desde la que estás accediendo al front
+    config.setAllowedOrigins(Arrays.asList(
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "http://192.168.64.1:3000" 
+    ));
+    
+    config.setAllowedHeaders(Arrays.asList("*"));
+    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    
+    source.registerCorsConfiguration("/**", config);
+    return new CorsFilter(source);
+}
 }

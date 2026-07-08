@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-alertas-deployment
+  namespace: valle-del-sol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-alertas
+  template:
+    metadata:
+      labels:
+        app: ms-alertas
+    spec:
+      containers:
+      - name: ms-alertas
+        image: 473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-alertas:latest
+        ports:
+        - containerPort: 8084
+        env:
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: SPRING_DATASOURCE_URL_ALERTAS
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_PASSWORD
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+        - name: MS_USUARIOS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: MS_USUARIOS_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-alertas-service
+  namespace: valle-del-sol
+spec:
+  ports:
+  - port: 8084
+    targetPort: 8084
+  selector:
+    app: ms-alertas

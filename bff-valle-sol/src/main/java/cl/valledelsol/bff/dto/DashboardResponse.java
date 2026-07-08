@@ -12,7 +12,8 @@ public class DashboardResponse {
     private String mensaje;
 
     // Constructor vacío obligatorio para la serialización de Jackson (JSON)
-    public DashboardResponse() {}
+    public DashboardResponse() {
+    }
 
     // Constructor explícito utilizado por el BffService para armar el objeto rápido
     public DashboardResponse(Integer totalReportes, Integer totalUsuarios, String mensaje) {
@@ -24,16 +25,16 @@ public class DashboardResponse {
     // =========================================================
     // GETTERS EXPLÍCITOS (Lectura segura para el Frontend)
     // =========================================================
-    public Integer getTotalReportes() { 
-        return totalReportes; 
+    public Integer getTotalReportes() {
+        return totalReportes;
     }
-    
-    public Integer getTotalUsuarios() { 
-        return totalUsuarios; 
+
+    public Integer getTotalUsuarios() {
+        return totalUsuarios;
     }
-    
-    public String getMensaje() { 
-        return mensaje; 
+
+    public String getMensaje() {
+        return mensaje;
     }
 
     // =========================================================
