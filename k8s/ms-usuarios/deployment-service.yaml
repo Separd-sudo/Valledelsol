@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-usuarios-deployment
+  namespace: valle-del-sol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-usuarios
+  template:
+    metadata:
+      labels:
+        app: ms-usuarios
+    spec:
+      containers:
+      - name: ms-usuarios
+        image: 473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-usuarios:latest
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: SPRING_DATASOURCE_URL_USUARIOS
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-usuarios-service
+  namespace: valle-del-sol
+spec:
+  ports:
+  - port: 8082
+    targetPort: 8082
+  selector:
+    app: ms-usuarios

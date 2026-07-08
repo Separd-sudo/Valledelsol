@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff-valle-sol-deployment
+  namespace: valle-del-sol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bff-valle-sol
+  template:
+    metadata:
+      labels:
+        app: bff-valle-sol
+    spec:
+      containers:
+      - name: bff-valle-sol
+        image: 473818454094.dkr.ecr.us-east-1.amazonaws.com/bff-valle-sol:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MS_USUARIOS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: MS_USUARIOS_URL
+        - name: MS_REPORTES_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: MS_REPORTES_URL
+        - name: MS_AUTH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: MS_AUTH_URL
+        - name: MS_ALERTAS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: MS_ALERTAS_URL
+        - name: MS_ANALITICA_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: MS_ANALITICA_URL
+        - name: MS_GEOGRAFICO_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: MS_GEOGRAFICO_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: JWT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bff-valle-sol-service
+  namespace: valle-del-sol
+spec:
+  type: LoadBalancer # Expone el BFF públicamente mediante un balanceador de carga de AWS
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: bff-valle-sol

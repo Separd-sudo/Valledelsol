@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-valle-sol-deployment
+  namespace: valle-del-sol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-valle-sol
+  template:
+    metadata:
+      labels:
+        app: frontend-valle-sol
+    spec:
+      containers:
+      - name: frontend-valle-sol
+        image: 473818454094.dkr.ecr.us-east-1.amazonaws.com/frontend-valle-sol:latest
+        ports:
+        - containerPort: 3000
+        env:
+        # Apunta al LoadBalancer DNS de AWS del BFF.
+        # Una vez desplegado el bff-valle-sol-service, reemplaza el valor de abajo
+        # con la DNS del LoadBalancer creada por AWS para que el front se comunique.
+        - name: NEXT_PUBLIC_API_BASE_URL
+          value: "http://REEMPLAZAR_CON_DNS_DEL_LOADBALANCER_DEL_BFF:8080/api/v1/bff"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-valle-sol-service
+  namespace: valle-del-sol
+spec:
+  type: LoadBalancer # Expone el frontend públicamente mediante un balanceador de carga de AWS
+  ports:
+  - port: 3000
+    targetPort: 3000
+  selector:
+    app: frontend-valle-sol

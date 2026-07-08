@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-auth-deployment
+  namespace: valle-del-sol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-auth
+  template:
+    metadata:
+      labels:
+        app: ms-auth
+    spec:
+      containers:
+      - name: ms-auth
+        image: 473818454094.dkr.ecr.us-east-1.amazonaws.com/ms-auth:latest
+        ports:
+        - containerPort: 8083
+        env:
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: valle-config
+              key: SPRING_DATASOURCE_URL_USUARIOS
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: POSTGRES_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: valle-secrets
+              key: JWT_SECRET
+        - name: JWT_EXPIRATION_MS
+          value: "3600000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-auth-service
+  namespace: valle-del-sol
+spec:
+  ports:
+  - port: 8083
+    targetPort: 8083
+  selector:
+    app: ms-auth
